@@ -32,7 +32,7 @@ Field Hub provides a centralized platform to :
 
 - Visualizes data through graphs and dashboards for quick insights.
 
-## 🎯 What the Product Does
+## 🎯 Why This Project Matters
 
 - Digitizes field reports and attendance to replace manual paperwork.
 
