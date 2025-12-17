@@ -40,6 +40,17 @@ Field Hub provides a centralized platform to :
 
 - Visualizes data through graphs and dashboards for quick insights.
 
+## 📸 Screenshots
+
+### Home Page
+![Home Page](screenshots/homepage.png)
+
+### Admin Dashboard
+![Admin Dashboard](screenshots/admin-dashboard.png)
+
+### Worker Dashboard
+![Worker Dashboard](screenshots/worker-dashboard.png)
+
 ## 🛠 Tech Stack
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend / Services:** Firebase
