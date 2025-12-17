@@ -53,482 +53,125 @@
     <!-- Modal Helpers -->
     <div id="app">
         <!-- Landing Page (Default Public View) -->
-        <section id="landing-page" class="view active">
-            <div class="glass-panel text-center"
-                style="max-width: 600px; padding: 40px; margin: auto; margin-top: 10vh;">
-                <i class="fa-solid fa-satellite-dish pulse"
-                    style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
-                <h1 style="font-size: 2.5rem; margin-bottom: 10px;">FieldHub</h1>
-                <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 30px;">
-                    Integrated Field Operations & Management Platform
-                </p>
-                <div style="display: flex; gap: 20px; justify-content: center;">
-                    <button class="btn-primary" onclick="showAuth()" style="padding: 12px 30px; font-size: 1.1rem;">
-                        <i class="fa-solid fa-right-to-bracket"></i> Login
-                    </button>
-                    <button class="btn-outline" onclick="openModal('registration-modal')"
-                        style="padding: 12px 30px; font-size: 1.1rem;">
-                        <i class="fa-solid fa-user-plus"></i> Register
-                    </button>
+        <section id="landing-page" class="view active" style="overflow-y: auto; height: 100vh; padding: 20px;">
+            <!-- Hero Section -->
+            <div style="max-width: 1200px; margin: 0 auto;">
+
+                <!-- Navigation / Header -->
+                <nav class="glass-panel"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 40px;">
+                    <div style="display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 700;">
+                        <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i> FieldHub
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-text"
+                            onclick="document.getElementById('about-section').scrollIntoView({behavior: 'smooth'})">About</button>
+                        <button class="btn-primary" onclick="window.location.href='app.html'">Login</button>
+                    </div>
+                </nav>
+
+                <!-- Hero Content -->
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-bottom: 60px;">
+                    <div>
+                        <h1
+                            style="font-size: 3.5rem; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                            Streamline Your NGO Operations
+                        </h1>
+                        <p
+                            style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 30px; line-height: 1.6;">
+                            Changes the way you manage field projects. Track attendance, manage sites, and collect
+                            reports in real-time.
+                            Empower your volunteers with clear tasks and easy-to-use tools.
+                        </p>
+                        <div style="display: flex; gap: 20px;">
+                            <button class="btn-primary" onclick="openModal('registration-modal')"
+                                style="padding: 15px 40px; font-size: 1.1rem; border-radius: 50px;">
+                                Join as Volunteer <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button class="btn-outline" onclick="window.location.href='app.html'"
+                                style="padding: 15px 40px; font-size: 1.1rem; border-radius: 50px;">
+                                Staff Login
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Hero Image / Illustration Placeholder -->
+                    <div class="glass-panel"
+                        style="padding: 40px; text-align: center; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: var(--primary); opacity: 0.1; border-radius: 50%; filter: blur(40px);">
+                        </div>
+                        <i class="fa-solid fa-map-location-dot"
+                            style="font-size: 8rem; color: var(--text-muted); opacity: 0.2;"></i>
+                        <div style="margin-top: -4rem; position: relative;">
+                            <div class="glass-panel"
+                                style="display: inline-block; padding: 20px; margin-bottom: 10px; animation: float 6s ease-in-out infinite;">
+                                <i class="fa-solid fa-check-circle" style="color: var(--success);"></i> Task
+                                Completed<br>
+                                <small style="color: var(--text-secondary);">Park Restoration - Site A</small>
+                            </div>
+                            <br>
+                            <div class="glass-panel"
+                                style="display: inline-block; padding: 20px; animation: float 6s ease-in-out infinite 2s;">
+                                <i class="fa-solid fa-user-clock" style="color: var(--warning);"></i> 12 Staff
+                                Active<br>
+                                <small style="color: var(--text-secondary);">Real-time Attendance</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Features Section -->
+                <h2 id="about-section" style="text-align: center; font-size: 2.5rem; margin-bottom: 40px;">Why FieldHub?
+                </h2>
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 80px;">
+                    <div class="glass-panel" style="padding: 30px;">
+                        <div
+                            style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="fa-solid fa-folder-tree" style="font-size: 1.5rem; color: var(--primary);"></i>
+                        </div>
+                        <h3>Project Management</h3>
+                        <p style="color: var(--text-secondary); margin-top: 10px;">
+                            Organize multiple initiatives seamlessly. Assign sites and workers to specific projects like
+                            "Disaster Relief" or "Education Drive".
+                        </p>
+                    </div>
+                    <div class="glass-panel" style="padding: 30px;">
+                        <div
+                            style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="fa-solid fa-location-dot" style="font-size: 1.5rem; color: var(--success);"></i>
+                        </div>
+                        <h3>Geo-Fenced Attendance</h3>
+                        <p style="color: var(--text-secondary); margin-top: 10px;">
+                            Ensure accountability. Workers can only clock in when physically present at the assigned
+                            site location.
+                        </p>
+                    </div>
+                    <div class="glass-panel" style="padding: 30px;">
+                        <div
+                            style="width: 50px; height: 50px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="fa-solid fa-chart-line" style="font-size: 1.5rem; color: var(--accent);"></i>
+                        </div>
+                        <h3>Real-Time Reporting</h3>
+                        <p style="color: var(--text-secondary); margin-top: 10px;">
+                            Collect data from the ground instantly. Volunteers can submit photo reports and tasks
+                            updates directly from their mobile.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer
+                    style="text-align: center; padding: 40px; border-top: 1px solid var(--border); color: var(--text-muted);">
+                    <p>&copy; 2024 FieldHub. Built for NGOs.</p>
+                </footer>
+
             </div>
         </section>
 
-        <!-- Auth View -->
-        <section id="auth-view" class="view hidden">
-            <div class="glass-panel auth-card">
-                <div class="logo-area">
-                    <i class="fa-solid fa-satellite-dish pulse"></i>
-                    <h1>FieldHub</h1>
-                    <p>Field Operations Platform</p>
-                </div>
 
-                <div class="role-selector">
-                    <button class="role-btn active" data-role="admin">
-                        <i class="fa-solid fa-user-tie"></i>
-                        <span>Manager</span>
-                    </button>
-                    <button class="role-btn" data-role="field">
-                        <i class="fa-solid fa-person-hiking"></i>
-                        <span>Field Staff</span>
-                    </button>
-                </div>
-
-                <form id="login-form">
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input type="email" placeholder="Email Address" required>
-                    </div>
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="btn-primary">
-                        Access Portal <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Admin Dashboard -->
-        <section id="admin-view" class="view hidden">
-            <nav class="sidebar glass-panel">
-                <div class="nav-brand">
-                    <i class="fa-solid fa-satellite-dish"></i>
-                    <span>FieldHub</span>
-                </div>
-                <ul class="nav-links">
-                    <li class="active"><a href="#overview"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
-                    <li><a href="#map"><i class="fa-solid fa-map-location-dot"></i> Live Map</a></li>
-                    <li><a href="#projects"><i class="fa-solid fa-folder-tree"></i> Projects</a></li>
-                    <li><a href="#sites"><i class="fa-solid fa-building"></i> Sites</a></li>
-                    <li><a href="#staff"><i class="fa-solid fa-users"></i> Staff</a></li>
-                    <li><a href="#registrations"><i class="fa-solid fa-user-plus"></i> Approvals</a></li>
-                    <li><a href="#tasks"><i class="fa-solid fa-list-check"></i> Tasks</a></li>
-                    <li><a href="#attendance"><i class="fa-solid fa-clock"></i> Attendance</a></li>
-                    <li><a href="#reports"><i class="fa-solid fa-file-lines"></i> Reports</a></li>
-                    <li><a href="#leave"><i class="fa-solid fa-calendar-check"></i> Leave</a></li>
-                </ul>
-                <div class="user-profile">
-                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" alt="Admin">
-                    <div class="user-info">
-                        <h4>Jane Admin</h4>
-                        <div style="display:flex; justify-content:space-between; margin-top:5px;">
-                            <span onclick="toggleTheme()"
-                                style="cursor: pointer; font-size:0.85rem; color:var(--text-secondary);"><i
-                                    class="theme-icon fa-solid fa-moon"></i> Theme</span>
-                            <span id="logout-btn"
-                                style="cursor: pointer; font-size:0.85rem; color:var(--text-secondary);"><i
-                                    class="fa-solid fa-arrow-right-from-bracket"></i> Logout</span>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <main class="main-content">
-                <header class="top-bar glass-panel">
-                    <h2>Mission Control</h2>
-                    <div class="status-indicators">
-                        <div class="status-item online">
-                            <span class="dot"></span> System Operational
-                        </div>
-                        <div class="date-display" id="current-date">--/--/----</div>
-                    </div>
-                </header>
-
-                <div class="content-area">
-                    <!-- Overview Tab -->
-                    <div id="tab-overview" class="tab-content active">
-                        <div class="stats-grid">
-                            <div class="stat-card glass-panel">
-                                <div class="icon-box blue"><i class="fa-solid fa-users-viewfinder"></i></div>
-                                <div class="stat-info">
-                                    <h3>Active Field Staff</h3>
-                                    <p class="stat-value" id="stat-active-staff">0</p>
-                                </div>
-                            </div>
-                            <div class="stat-card glass-panel">
-                                <div class="icon-box green"><i class="fa-solid fa-check-double"></i></div>
-                                <div class="stat-info">
-                                    <h3>Tasks Completed</h3>
-                                    <p class="stat-value" id="stat-completed-tasks">0</p>
-                                </div>
-                            </div>
-                            <div class="stat-card glass-panel">
-                                <div class="icon-box orange"><i class="fa-solid fa-clipboard-question"></i></div>
-                                <div class="stat-info">
-                                    <h3>Pending Leaves</h3>
-                                    <p class="stat-value" id="stat-leave-reqs">0</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="dashboard-split">
-                            <div class="recent-activity glass-panel" style="flex:2;">
-                                <h3><i class="fa-solid fa-satellite-dish"></i> Recent Activity</h3>
-                                <ul class="activity-list" id="activity-log">
-                                    <!-- Populated by JS -->
-                                    <li class="skeleton-item" style="height: 40px;"></li>
-                                    <li class="skeleton-item" style="height: 40px;"></li>
-                                    <li class="skeleton-item" style="height: 40px;"></li>
-                                </ul>
-                            </div>
-                            <div class="chart-container glass-panel"
-                                style="flex:1; min-width:300px; height: 350px; position: relative;">
-                                <h3>Attendance Trends</h3>
-                                <canvas id="attendanceChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Map Tab -->
-                    <div id="tab-map" class="tab-content hidden" style="height: calc(100vh - 120px);">
-                        <div id="ops-map" class="map-container"
-                            style="width: 100%; height: 100%; border-radius: 16px; overflow: hidden; z-index: 1;"></div>
-                    </div>
-
-                    <!-- Projects Tab -->
-                    <div id="tab-projects" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                <h3>Projects & Operations</h3>
-                                <button class="btn-primary" onclick="openModal('project-modal')"><i
-                                        class="fa-solid fa-folder-plus"></i> Add Project</button>
-                            </div>
-                            <div id="admin-project-list" class="responsive-grid">
-                                <!-- Projects populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sites Tab -->
-                    <div id="tab-sites" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                <h3>Workplaces & Geofences</h3>
-                                <button class="btn-primary" onclick="openModal('site-modal')"><i
-                                        class="fa-solid fa-plus"></i> Add Site</button>
-                            </div>
-                            <div id="admin-site-list" class="responsive-grid">
-                                <!-- Sites populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Registrations Tab -->
-                    <div id="tab-registrations" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <h3>Pending Registrations</h3>
-                            <div id="admin-registration-list" class="responsive-grid" style="margin-top: 20px;">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Staff Tab -->
-                    <div id="tab-staff" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                <h3>Field Staff Directory</h3>
-                                <button class="btn-primary" onclick="openAddWorkerModal()"><i
-                                        class="fa-solid fa-users"></i> Add Worker</button>
-                            </div>
-                            <div id="staff-list" class="responsive-grid">
-                                <!-- Staff populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tasks Tab -->
-                    <div id="tab-tasks" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <div class="flex-between"
-                                style="display:flex; justify-content:space-between; margin-bottom: 20px;">
-                                <h3>All Tasks</h3>
-                                <button class="btn-primary" style="width: auto;" onclick="openModal('task-modal')"><i
-                                        class="fa-solid fa-plus"></i> New Task</button>
-                            </div>
-                            <div id="admin-task-list">
-                                <!-- Tasks Table Style -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Attendance Tab -->
-                    <div id="tab-attendance" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <h3 style="margin:0 0 20px 0;">Attendance Logs</h3>
-                            <div id="attendance-log-list" style="max-height: 70vh; overflow-y: auto;">
-                                <!-- Attendance logs populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reports Tab -->
-                    <div id="tab-reports" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <h3 style="margin:0 0 20px 0;">Field Reports</h3>
-                            <div id="admin-reports-list" style="max-height: 70vh; overflow-y: auto;">
-                                <!-- Reports populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reports Tab -->
-                    <div id="tab-reports" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <h3 style="margin:0 0 20px 0;">Field Reports</h3>
-                            <div id="admin-reports-list" style="max-height: 70vh; overflow-y: auto;">
-                                <!-- Reports populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Leave Tab -->
-                    <div id="tab-leave" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <h3>Leave Requests</h3>
-                            <div id="admin-leave-list" style="margin-top: 20px;">
-                                <!-- Leave Items -->
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </main>
-        </section>
-
-        <!-- Field Staff App -->
-        <section id="field-view" class="view hidden">
-            <header class="mobile-header glass-panel">
-                <div class="logo-small">
-                    <i class="fa-solid fa-satellite-dish"></i>
-                </div>
-                <div class="user-greeting">
-                    <span>Hello,</span>
-                    <h3 id="field-user-name">Staff Member</h3>
-                </div>
-                <button class="icon-btn" onclick="toggleTheme()" title="Theme" style="margin-right:8px;">
-                    <i class="theme-icon fa-solid fa-moon"></i>
-                </button>
-                <button class="icon-btn" id="field-logout" title="Logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                </button>
-            </header>
-
-            <main class="mobile-content">
-                <!-- Home Tab -->
-                <div id="field-tab-home" class="field-tab active">
-                    <!-- Clock In/Out Section -->
-                    <div class="attendance-card glass-panel">
-                        <div class="status-circle" id="attendance-status-circle">
-                            <i class="fa-solid fa-user-clock"></i>
-                        </div>
-                        <div class="attendance-controls">
-                            <p id="attendance-text">You are currently clocked OUT</p>
-                            <button id="clock-btn" class="btn-primary pulse-btn">Clock In</button>
-                        </div>
-                        <div class="location-badge">
-                            <i class="fa-solid fa-location-crosshairs"></i> <span
-                                id="current-location-text">Locating...</span>
-                        </div>
-                    </div>
-
-                    <h3>Your Tasks</h3>
-                    <div class="task-list" id="field-task-list">
-                        <!-- Tasks populated by JS -->
-                    </div>
-                </div>
-
-                <!-- Leave Tab -->
-                <div id="field-tab-leave" class="field-tab hidden" style="padding:20px;">
-                    <h3>My Leave Requests</h3>
-                    <button class="btn-primary" onclick="openModal('leave-modal')" style="margin-bottom: 20px;">+
-                        Request Leave</button>
-                    <div id="field-leave-list"></div>
-                </div>
-
-                <div class="fab-wrapper">
-                    <button class="fab" id="new-report-btn">
-                        <i class="fa-solid fa-camera"></i>
-                    </button>
-                </div>
-            </main>
-
-            <nav class="mobile-nav glass-panel">
-                <a href="#home" class="active" data-target="field-tab-home"><i class="fa-solid fa-house"></i></a>
-                <a href="#leave" data-target="field-tab-leave"><i class="fa-solid fa-calendar-day"></i></a>
-                <a href="#" onclick="alert('Profile settings coming soon!')"><i class="fa-solid fa-user-gear"></i></a>
-            </nav>
-        </section>
-
-        <!-- Modals -->
-        <!-- Task Modal -->
-        <div id="task-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Assign New Task</h3>
-                <form id="create-task-form">
-                    <input type="text" name="title" placeholder="Task Title" required class="input-light">
-                    <input type="text" name="location" placeholder="Location Name" required class="input-light">
-                    <select name="assignedTo" id="staff-select" class="input-light">
-                        <!-- Filled by JS -->
-                    </select>
-                    <div class="flex-gap">
-                        <select name="priority" class="input-light">
-                            <option value="low">Low Priority</option>
-                            <option value="medium">Medium Priority</option>
-                            <option value="high">High Priority</option>
-                        </select>
-                        <input type="time" name="time" required class="input-light">
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('task-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Assign Task</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Leave Modal -->
-        <div id="leave-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Request Leave</h3>
-                <form id="leave-form">
-                    <select name="type" class="input-light">
-                        <option>Sick Leave</option>
-                        <option>Vacation</option>
-                        <option>Personal</option>
-                    </select>
-                    <input type="date" name="date" required class="input-light">
-                    <input type="text" name="reason" placeholder="Reason" required class="input-light">
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('leave-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Submit Request</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Report Modal -->
-        <div id="report-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Submit Field Report</h3>
-                <form id="report-form">
-                    <textarea name="content" placeholder="Describe the situation..." rows="4" class="input-light"
-                        required></textarea>
-                    <div class="upload-area" id="upload-area-display" style="margin-bottom: 12px;">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <p>Click to upload photo</p>
-                        <input type="file" id="report-photo" name="photo" accept="image/*" style="display: none;">
-                    </div>
-                    <div id="photo-preview" style="display: none; margin-bottom: 12px;">
-                        <img id="preview-image" style="max-width: 100%; border-radius: 8px; max-height: 200px;">
-                        <button type="button" class="btn-text" onclick="removePhoto()" style="margin-top: 8px;">Remove
-                            Photo</button>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('report-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Submit Report</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Project Modal -->
-        <div id="project-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Create New Project</h3>
-                <form id="project-form">
-                    <input type="text" name="name" placeholder="Project Name" required class="input-light">
-                    <textarea name="description" placeholder="Project Description" rows="3"
-                        class="input-light"></textarea>
-                    <input type="text" name="manager" placeholder="Project Manager" class="input-light">
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('project-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Create Project</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Site Modal -->
-        <div id="site-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Add Workplace / Geofence</h3>
-                <form id="site-form">
-                    <input type="text" name="name" placeholder="Site Name" required class="input-light">
-                    <select name="projectId" id="site-project-select" class="input-light">
-                        <option value="">-- No Project (General) --</option>
-                        <!-- Populated by JS -->
-                    </select>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" name="lat" placeholder="Latitude" required class="input-light">
-                        <input type="text" name="lng" placeholder="Longitude" required class="input-light">
-                    </div>
-                    <input type="number" name="radius" placeholder="Radius (meters)" value="200" required
-                        class="input-light">
-                    <!-- Helper Text -->
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 20px;">
-                        <i class="fa-solid fa-info-circle"></i> Use Google Maps to find Lat/Lng. Workers must be within
-                        this radius to clock in.
-                    </p>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('site-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Save Site</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Worker Modal -->
-        <div id="worker-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Add Field Worker</h3>
-                <form id="worker-form">
-                    <input type="hidden" name="workerId" value="">
-                    <input type="text" name="name" placeholder="Full Name" required class="input-light">
-                    <input type="email" name="email" placeholder="Email Address" required class="input-light">
-                    <input type="tel" name="phone" placeholder="Phone Number" required class="input-light">
-                    <select name="role" class="input-light mobile-compatible" required style="margin-bottom: 15px;">
-                        <option value="field">Field Staff</option>
-                        <option value="admin">Admin / Manager</option>
-                    </select>
-                    <input type="password" name="password" placeholder="Password (for login)" required
-                        class="input-light" minlength="6">
-                    <select name="assignedSite" id="site-select" class="input-light" required>
-                        <option value="">Select Workplace/Office</option>
-                        <!-- Filled by JS -->
-                    </select>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('worker-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Add Worker</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         <!-- Registration Modal (Public) -->
         <div id="registration-modal" class="modal hidden">

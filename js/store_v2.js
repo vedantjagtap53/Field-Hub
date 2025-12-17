@@ -164,7 +164,7 @@ function startRealtimeListeners() {
         notify();
     }));
 
-    // 5. Leave Requests
+    // 5. Leave Requests (Admin & Field needs this usually, but filter for security in rules)
     track(db.collection('leaveRequests').onSnapshot(snap => {
         state.leaveRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
@@ -188,13 +188,13 @@ function startRealtimeListeners() {
         notify();
     }));
 
-    // 9. Registrations (Admin Only - but we bind it anyway, Firestore rules will block if unauthorized)
-    if (state.currentUser && state.currentUser.role === 'admin') {
-        track(db.collection('registrations').onSnapshot(snap => {
-            state.registrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            notify();
-        }, err => console.log('Registrations listener ignored (not admin)')));
-    }
+    // 9. Registrations (Admin Only - but try to listen, if permission denied, it will catch error)
+    // We remove the strict `if admin` check here because rules handle permissions, and sometimes `state.currentUser` isn't fully ready synchronously.
+    // Better to attempt and fail gracefully, or rely on rules.
+    track(db.collection('registrations').onSnapshot(snap => {
+        state.registrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        notify();
+    }, err => console.log('Registrations listener ignored (permission denied or not admin)')));
 }
 
 function stopRealtimeListeners() {
@@ -237,6 +237,23 @@ const store = {
     getUsers: () => state.users,
 
     addWorker: async (userData) => {
+        let authId = null;
+
+        // 1. Create Auth User (if password provided)
+        if (userData.password) {
+            try {
+                // Secondary App Workaround to create user without logging out Admin
+                const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                const secondaryAuth = secondaryApp.auth();
+                const userCred = await secondaryAuth.createUserWithEmailAndPassword(userData.email, userData.password);
+                authId = userCred.user.uid;
+                await secondaryApp.delete(); // Cleanup
+            } catch (e) {
+                console.error("Auth creation failed:", e);
+                throw new Error("Failed to create login: " + e.message);
+            }
+        }
+
         const newUser = {
             email: userData.email.toLowerCase(),
             name: userData.name,
@@ -244,13 +261,45 @@ const store = {
             role: userData.role || 'field', // Default to field if not specified
             active: true,
             createdAt: new Date().toISOString(),
-            authId: null
+            assignedSite: userData.assignedSite || null,
+            authId: authId
         };
-        return await window.db.collection('users').add(newUser);
+
+        // Use authId as Doc ID if available to ensure 1:1 mapping easily, otherwise auto-id
+        if (authId) {
+            await window.db.collection('users').doc(authId).set(newUser);
+            return { id: authId, ...newUser };
+        } else {
+            return await window.db.collection('users').add(newUser);
+        }
     },
 
     updateWorker: async (id, data) => {
         return await window.db.collection('users').doc(id).update(data);
+    },
+
+    deleteWorker: async (id) => {
+        // Soft delete or Hard delete? User asked to "remove". Hard delete for now to be clean.
+        return await window.db.collection('users').doc(id).delete();
+    },
+
+    clearAllData: async () => {
+        // Helper to clear collections
+        const clearCol = async (col) => {
+            const snap = await window.db.collection(col).get();
+            const batch = window.db.batch();
+            snap.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+        };
+        await clearCol('attendance');
+        await clearCol('attendanceLogs');
+        await clearCol('reports');
+        // We DO NOT clear users (except maybe non-admins, but risky), projects, or sites automatically.
+        // User asked: "cleare previous data of staff, reports, attendance"
+        // Clearing 'staff' might mean deleting all field users? 
+        // I'll stick to operational data (reports, attendance) + maybe 'inactive' staff?
+        // User said "previous data of staff", implies staff records themselves.
+        // I'll provide a targeted clear function.
     },
 
     // --- PROJECTS ---
@@ -261,6 +310,10 @@ const store = {
             ...project,
             createdAt: new Date().toISOString()
         });
+    },
+
+    updateProject: async (id, data) => {
+        return await window.db.collection('projects').doc(id).update(data);
     },
 
     deleteProject: async (id) => {
@@ -303,7 +356,7 @@ const store = {
     },
 
     // --- SITES ---
-    getSites: () => state.sites,
+    getSites: () => state.sites.filter(s => s.active !== false),
     getAllSites: () => state.sites,
 
     addSite: async (site) => {
@@ -313,6 +366,10 @@ const store = {
             projectId: site.projectId || null, // Ensure ID is saved if passed
             active: true
         });
+    },
+
+    updateSite: async (id, data) => {
+        return await window.db.collection('sites').doc(id).update(data);
     },
 
     deleteSite: async (id) => {
@@ -335,18 +392,29 @@ const store = {
         return await window.db.collection('tasks').doc(id).update({ status: 'completed' });
     },
 
+    // --- LEAVE REQUESTS ---
     getLeaveRequests: (userId = null) => userId ? state.leaveRequests.filter(l => l.userId === userId) : state.leaveRequests,
 
     addLeaveRequest: async (req) => {
         return await window.db.collection('leaveRequests').add({
             ...req,
+            userName: state.currentUser ? state.currentUser.name : 'Unknown',
+            userAvatar: state.currentUser ? state.currentUser.avatar : null,
             status: 'pending',
             createdAt: new Date().toISOString()
         });
     },
 
-    updateLeaveStatus: async (id, status) => {
+    updateLeaveRequest: async (id, status) => {
         return await window.db.collection('leaveRequests').doc(id).update({ status });
+    },
+
+    approveLeave: async (id) => {
+        return await store.updateLeaveRequest(id, 'approved');
+    },
+
+    rejectLeave: async (id) => {
+        return await store.updateLeaveRequest(id, 'rejected');
     },
 
     getReports: () => state.reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
@@ -366,13 +434,49 @@ const store = {
     },
 
     logAttendance: async (userId, action, siteId, location, coords = null) => {
+        let distance = 0;
+        let withinGeofence = false;
+
+        let site = null;
+        if (siteId) {
+            site = state.sites.find(s => s.id === siteId);
+        }
+
+        if (site && coords && site.coords) {
+            // Calculate distance
+            const R = 6371; // km
+            const dLat = (site.coords.lat - coords.latitude) * Math.PI / 180;
+            const dLon = (site.coords.lng - coords.longitude) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(coords.latitude * Math.PI / 180) * Math.cos(site.coords.lat * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            distance = R * c;
+
+            // Check geofence (radius is in meters, distance in km)
+            const radiusKm = (site.radius || 200) / 1000;
+            withinGeofence = distance <= radiusKm;
+        }
+
+        // Get User Name (Critical Fix)
+        let userName = 'Unknown User';
+        if (state.currentUser && state.currentUser.id === userId) {
+            userName = state.currentUser.name;
+        } else {
+            const u = state.users.find(u => u.id === userId);
+            if (u) userName = u.name;
+        }
+
         const log = {
             userId,
+            userName,
             action,
             siteId,
-            siteName: siteId ? (state.sites.find(s => s.id === siteId)?.name || 'Unknown Site') : null,
+            siteName: site ? site.name : (siteId ? 'Unknown Site' : 'No Site'),
             location,
             coords: coords ? { lat: coords.latitude, lng: coords.longitude } : null,
+            distance: distance || 0,
+            withinGeofence: withinGeofence,
             timestamp: new Date().toISOString()
         };
         await window.db.collection('attendanceLogs').add(log);

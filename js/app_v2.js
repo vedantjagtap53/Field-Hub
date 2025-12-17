@@ -50,6 +50,7 @@ if (window.store) {
 
 // DOM Elements
 const views = {
+    landing: document.getElementById('landing-page'),
     auth: document.getElementById('auth-view'),
     admin: document.getElementById('admin-view'),
     field: document.getElementById('field-view')
@@ -169,26 +170,52 @@ function setupEventListeners() {
     // Subscribe to store updates for real-time UI
     if (store.subscribe) {
         store.subscribe(() => {
-            // Refresh the current view if data changes
+            const user = store.getCurrentUser();
             const currentView = document.querySelector('.view.active');
+
+            // Auto-redirect if on Auth/Landing but user is logged in
+            if (user && currentView && (currentView.id === 'auth-view' || currentView.id === 'landing-page')) {
+                // If on Landing (index.html) and Admin view is missing (implies split file), redirect to app.html
+                if (currentView.id === 'landing-page' && !views.admin) {
+                    window.location.href = 'app.html';
+                    return;
+                }
+                // Determine target view
+                const target = user.role === 'admin' ? 'admin' : 'field';
+                // If we are already attempting to show it, or if we are on auth/landing
+                navigate(target);
+                return;
+            }
+
+            // Refresh the current view if data changes
             if (currentView && currentView.id === 'admin-view') {
                 updateAdminStats();
+                renderActivityLog();
+                // Only re-render chart if needed (optional, typically stats update handles numbers, but chart might need refresh)
+                if (window.renderChart) renderChart();
+
                 // We cautiously re-render active tabs to show live updates
-                const tabs = ['staff', 'projects', 'tasks', 'attendance'];
+                const tabs = ['staff', 'projects', 'tasks', 'attendance', 'reports', 'leave', 'sites'];
                 tabs.forEach(t => {
                     const tabEl = document.getElementById('tab-' + t);
                     if (tabEl && !tabEl.classList.contains('hidden')) {
-                        if (t === 'staff') renderStaff();
-                        if (t === 'tasks') renderAdminTasks();
-                        if (t === 'staff') renderStaff();
+                        if (t === 'staff') { renderStaff(); renderRegistrations(); }
                         if (t === 'projects') renderProjects();
+                        if (t === 'sites') renderSites();
                         if (t === 'tasks') renderAdminTasks();
                         if (t === 'attendance') renderAttendanceLogs();
+                        if (t === 'reports') renderAdminReports();
+                        if (t === 'leave') renderAdminLeaves();
                     }
                 });
+                renderDropdowns(); // Ensure dropdowns are always fresh with latest data
             } else if (currentView && currentView.id === 'field-view') {
-                const user = store.getCurrentUser();
-                if (user) renderFieldTasks(user.id);
+                if (user) {
+                    renderFieldTasks(user.id);
+                    // Check if Leave tab is active
+                    const leaveTab = document.getElementById('field-tab-leave');
+                    if (leaveTab && !leaveTab.classList.contains('hidden')) renderFieldLeaves();
+                }
             }
         });
     }
@@ -199,7 +226,14 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             store.logout();
             Toast.info('Logged out');
-            setTimeout(() => navigate('landing-page'), 400);
+            // Check if we are in app.html or index.html
+            if (views.landing) {
+                // We are in index.html (Landing exists)
+                setTimeout(() => navigate('landing'), 400);
+            } else {
+                // We are in app.html (No Landing view) allow defaults to auth
+                setTimeout(() => navigate('auth'), 400);
+            }
         });
     });
 
@@ -274,6 +308,7 @@ function setupEventListeners() {
             }
 
             if (targetId === 'field-tab-leave') renderFieldLeaves();
+            if (targetId === 'field-tab-profile') renderFieldProfile();
         });
     });
 
@@ -298,6 +333,16 @@ function setupEventListeners() {
 
     const fab = document.getElementById('new-report-btn');
     if (fab) fab.addEventListener('click', () => openModal('report-modal'));
+
+    const profileForm = document.getElementById('field-profile-form');
+    if (profileForm) profileForm.addEventListener('submit', handleProfileUpdate);
+
+    const profileLogout = document.getElementById('field-tab-logout');
+    if (profileLogout) profileLogout.addEventListener('click', () => {
+        store.logout();
+        Toast.info('Logged out');
+        navigate(views.landing ? 'landing' : 'auth');
+    });
 
     // Export to window for modal helpers in HTML
     window.openModal = function (id) {
@@ -347,7 +392,21 @@ function setupEventListeners() {
 
 function checkSession() {
     const user = store.getCurrentUser();
-    navigate(user ? (user.role === 'admin' ? 'admin' : 'field') : 'auth');
+
+    if (user) {
+        // If we are on the Landing Page (index.html) which doesn't have admin/field views
+        // Redirect to the App Page
+        if (views.landing && !views.admin) {
+            window.location.href = 'app.html';
+            return;
+        }
+        navigate(user.role === 'admin' ? 'admin' : 'field');
+    } else {
+        // If not logged in:
+        // If Landing exists (index.html), show it.
+        // If NOT (app.html), show Auth.
+        navigate(views.landing ? 'landing' : 'auth');
+    }
 }
 
 function navigate(viewName) {
@@ -378,17 +437,39 @@ function initAdminDashboard() {
     renderActivityLog();
     renderChart();
 
+    renderDropdowns();
+    renderAdminTasks();
+    renderRegistrations(); // Check for pending approvals on load
+}
+
+function renderDropdowns() {
     // Populate staff select
     const staff = store.getUsers().filter(u => u.role === 'field');
     const staffSel = document.getElementById('staff-select');
-    if (staffSel) staffSel.innerHTML = staff.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    if (staffSel) {
+        // Preserve value if possible, though easier to rely on simple refresh
+        const val = staffSel.value;
+        staffSel.innerHTML = staff.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+        if (val) staffSel.value = val;
+    }
 
     // Populate site select for worker form
     const sites = store.getAllSites();
     const siteSel = document.getElementById('site-select');
-    if (siteSel) siteSel.innerHTML = '<option value="">Select Workplace/Office</option>' + sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    if (siteSel) {
+        const val = siteSel.value;
+        siteSel.innerHTML = '<option value="">Select Workplace/Office</option>' + sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        if (val) siteSel.value = val;
+    }
 
-    renderAdminTasks();
+    // Populate project select for site form
+    const projects = store.getProjects();
+    const projectSel = document.getElementById('site-project-select');
+    if (projectSel) {
+        const val = projectSel.value;
+        projectSel.innerHTML = '<option value="">-- No Project (General) --</option>' + projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        if (val) projectSel.value = val;
+    }
 }
 
 function updateAdminStats() {
@@ -433,12 +514,16 @@ function renderActivityLog() {
     list.innerHTML = logs.length ? logs.map(log => {
         const date = new Date(log.timestamp);
         const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Fallback logic
+        const displayName = log.userName || (store.getUsers().find(u => u.id === log.userId)?.name) || 'Unknown User';
+
         return `
         <li style="padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: start;">
             <div style="margin-top:4px; width: 8px; height: 8px; border-radius: 50%; background: ${log.action === 'clock-in' ? '#10b981' : '#6b7280'};"></div>
             <div style="flex: 1;">
                 <p style="margin: 0; font-size: 0.9rem; color: var(--text-primary);">
-                    <strong>${log.userName}</strong>
+                    <strong>${displayName}</strong>
                 </p>
                 <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-secondary);">
                     ${log.action === 'clock-in' ? 'Arrived at' : 'Left'} ${log.siteName || 'Location'}
@@ -466,6 +551,9 @@ function renderStaff() {
                 <div style="flex:1;">
                     <h4 style="margin:0; font-size:1rem;">${w.name}</h4>
                     <p style="margin:2px 0 0; font-size:0.8rem; color:var(--text-muted);">${w.email}</p>
+                    <p style="margin:2px 0 0; font-size:0.75rem; color:var(--primary);">
+                        <i class="fa-solid fa-building"></i> ${w.assignedSite ? (store.getAllSites().find(s => s.id === w.assignedSite)?.name || 'Unknown Site') : 'No Site Assigned'}
+                    </p>
                 </div>
                 <span style="font-size:0.7rem; padding:4px 8px; border-radius:4px; background:${w.active ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)'}; color:${w.active ? 'var(--primary)' : 'var(--text-muted)'}; border:1px solid ${w.active ? 'var(--primary)' : 'var(--border)'}; text-transform:uppercase; font-weight:600;">
                     ${w.active ? 'Active' : 'Inactive'}
@@ -482,9 +570,50 @@ function renderStaff() {
                     <i class="fa-solid fa-${w.active ? 'ban' : 'check'}"></i> ${w.active ? 'Deactivate' : 'Activate'}
                 </button>
             </div>
+            <div style="margin-top:8px;">
+                <button class="btn-text" style="width:100%; color:#ef4444; font-size:0.8rem;" onclick="deleteWorker('${w.id}')">
+                    <i class="fa-solid fa-trash"></i> Permanently Remove
+                </button>
+            </div>
         </div>
     `).join('');
+
+    // Also render pending registrations here or ensures it is called
+    renderRegistrations();
 }
+
+window.deleteWorker = async (id) => {
+    if (!confirm('⚠️ Are you sure you want to PERMANENTLY REMOVE this staff member? This cannot be undone.')) return;
+    try {
+        await store.deleteWorker(id);
+        Toast.success('Staff member removed');
+        renderStaff();
+    } catch (e) {
+        console.error(e);
+        Toast.error(e.message);
+    }
+};
+
+window.performFullCleanup = async () => {
+    if (!confirm('DANGER: This will delete ALL Reports, Attendance Logs, and NON-ADMIN Users. Continue?')) return;
+    if (!confirm('Are you strictly sure? All field data will be lost.')) return;
+
+    Loading.show();
+    try {
+        await store.clearAllData();
+        // Also delete non-admin users manually here if store.clearAllData didn't do it
+        const users = store.getUsers().filter(u => u.role !== 'admin');
+        for (const u of users) {
+            await store.deleteWorker(u.id);
+        }
+        Loading.hide();
+        Toast.success('System cleanup complete');
+        window.location.reload();
+    } catch (e) {
+        Loading.hide();
+        Toast.error('Cleanup failed: ' + e.message);
+    }
+};
 
 window.editWorker = (userId) => {
     const user = store.getUsers().find(u => u.id === userId);
@@ -496,6 +625,14 @@ window.editWorker = (userId) => {
     form.email.value = user.email;
     form.phone.value = user.phone;
     if (form.role) form.role.value = user.role || 'field';
+    if (form.assignedSite) form.assignedSite.value = user.assignedSite || '';
+
+    // Handle password field: Optional for edit
+    const passInput = form.querySelector('input[name="password"]');
+    if (passInput) {
+        passInput.required = false;
+        passInput.placeholder = "Leave blank to keep current password";
+    }
 
     document.querySelector('#worker-modal h3').innerText = 'Edit Worker';
     document.querySelector('#worker-modal button[type=submit]').innerText = 'Update Worker';
@@ -540,11 +677,35 @@ async function handleWorkerSubmit(e) {
     Loading.hide();
     closeModal('worker-modal');
     e.target.reset();
+
+    // Reset password field to required for next "Add" action
+    const passInput = e.target.querySelector('input[name="password"]');
+    if (passInput) {
+        passInput.required = true;
+        passInput.placeholder = "Password (for login)";
+    }
+
     document.querySelector('#worker-modal h3').innerText = 'Add Field Worker';
     document.querySelector('#worker-modal button[type=submit]').innerText = 'Add Worker';
     renderStaff();
     initAdminDashboard(); // Refresh staff select
 }
+
+window.openAddWorkerModal = () => {
+    const form = document.getElementById('worker-form');
+    if (form) {
+        form.reset();
+        form.workerId.value = '';
+        const passInput = form.querySelector('input[name="password"]');
+        if (passInput) {
+            passInput.required = true;
+            passInput.placeholder = "Password (for login)";
+        }
+    }
+    document.querySelector('#worker-modal h3').innerText = 'Add Field Worker';
+    document.querySelector('#worker-modal button[type=submit]').innerText = 'Add Worker';
+    openModal('worker-modal');
+};
 
 // ========================================
 // ADMIN - PROJECTS & SITES
@@ -564,9 +725,14 @@ function renderProjects() {
                     <h4 style="margin:0; font-size:1rem;">${p.name}</h4>
                     <p style="margin:4px 0 0; font-size:0.8rem; color:var(--text-secondary);">${p.manager || 'No Manager'}</p>
                 </div>
-                <button class="btn-text" onclick="deleteProject('${p.id}')" style="color:var(--text-muted); padding:4px;">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-text" onclick="editProject('${p.id}')" style="color:var(--primary); padding:4px;" title="Edit">
+                        <i class="fa-solid fa-edit"></i>
+                    </button>
+                    <button class="btn-text" onclick="deleteProject('${p.id}')" style="color:var(--text-muted); padding:4px;" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
             </div>
             <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px; line-height:1.4;">${p.description || 'No description'}</p>
             <div style="display:flex; gap:12px; font-size:0.8rem; color:var(--text-secondary);">
@@ -580,23 +746,62 @@ async function handleProjectSubmit(e) {
     e.preventDefault();
     Loading.show();
     const fd = new FormData(e.target);
-    await store.addProject({
-        name: fd.get('name'),
-        description: fd.get('description'),
-        manager: fd.get('manager')
-    });
-    Loading.hide();
-    closeModal('project-modal');
-    e.target.reset();
-    Toast.success('Project created');
-    renderProjects();
+    const editId = e.target.dataset.editId;
+
+    try {
+        const projectData = {
+            name: fd.get('name'),
+            description: fd.get('description'),
+            manager: fd.get('manager')
+        };
+
+        if (editId) {
+            await store.updateProject(editId, projectData);
+            Toast.success('Project updated successfully');
+        } else {
+            await store.addProject(projectData);
+            Toast.success('Project created successfully');
+        }
+
+        Loading.hide();
+        closeModal('project-modal');
+        e.target.reset();
+        delete e.target.dataset.editId;
+
+        // Reset modal title
+        document.querySelector('#project-modal h3').innerText = 'Create New Project';
+        document.querySelector('#project-modal button[type=submit]').innerText = 'Create Project';
+
+        renderProjects();
+        initAdminDashboard();
+    } catch (error) {
+        Loading.hide();
+        console.error('Error with project:', error);
+        Toast.error('Failed to save project: ' + error.message);
+    }
 }
 
 window.deleteProject = async (id) => {
     if (confirm('Delete this project? Sites under it will remain but be unlinked.')) {
         await store.deleteProject(id);
         renderProjects();
+        Toast.success('Project deleted');
     }
+};
+
+window.editProject = (projectId) => {
+    const project = store.getProjects().find(p => p.id === projectId);
+    if (!project) return;
+
+    const form = document.getElementById('project-form');
+    form.dataset.editId = projectId;
+    form.name.value = project.name;
+    form.description.value = project.description || '';
+    form.manager.value = project.manager || '';
+
+    document.querySelector('#project-modal h3').innerText = 'Edit Project';
+    document.querySelector('#project-modal button[type=submit]').innerText = 'Update Project';
+    openModal('project-modal');
 };
 
 // ========================================
@@ -613,11 +818,14 @@ function renderAttendanceLogs() {
         const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+        // Fallback for older logs without cached name
+        const displayName = log.userName || (store.getUsers().find(u => u.id === log.userId)?.name) || 'Unknown User';
+
         return `
         <div class="glass-panel" style="padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <div style="flex:1;">
                 <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
-                    <strong>${log.userName}</strong>
+                    <strong>${displayName}</strong>
                     <span style="font-size:0.75rem; padding:3px 8px; border-radius:4px; background:${log.action === 'clock-in' ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)'}; color:${log.action === 'clock-in' ? 'var(--primary)' : 'var(--text-muted)'}; border:1px solid ${log.action === 'clock-in' ? 'var(--primary)' : 'var(--border)'}; text-transform:uppercase; font-weight:600;">
                         ${log.action}
                     </span>
@@ -667,15 +875,18 @@ function renderAdminTasks() {
     }).join('') : '<p style="text-align:center; padding:40px; color:var(--text-muted);">No tasks.</p>';
 }
 
+
 function renderAdminLeaves() {
     const reqs = store.getLeaveRequests();
     const list = document.getElementById('admin-leave-list');
     if (!list) return;
 
-    list.innerHTML = reqs.length ? reqs.map(r => `
-        <div class="glass-panel" style="margin-bottom:10px; padding:16px; border-left: 3px solid ${r.status === 'approved' ? 'var(--primary)' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')};">
+    list.innerHTML = reqs.length ? reqs.map(r => {
+        const displayName = r.userName || store.getUsers().find(u => u.id === r.userId)?.name || 'Unknown User';
+        return `
+        <div class="glass-panel" style="margin-bottom:10px; padding:16px; border-left: 3px solid ${r.status === 'approved' ? '#10b981' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')};">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <h4 style="margin:0; font-size:1rem;">${r.type} <span style="font-size:0.85rem; color:var(--text-muted); font-weight:400;">by ${r.userName}</span></h4>
+                <h4 style="margin:0; font-size:1rem;">${r.type} <span style="font-size:0.85rem; color:var(--text-muted); font-weight:400;">by ${displayName}</span></h4>
                 <span style="font-size:0.75rem; padding:3px 8px; border-radius:4px; background: ${r.status === 'approved' ? 'rgba(59,130,246,0.1)' : (r.status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)')}; color:${r.status === 'approved' ? 'var(--primary)' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}; border:1px solid; text-transform:uppercase; font-weight:600;">${r.status}</span>
             </div>
             <p style="margin:6px 0; color:var(--text-secondary); font-size:0.9rem;">${r.date} • ${r.reason}</p>
@@ -685,7 +896,8 @@ function renderAdminLeaves() {
                 <button class="btn-outline" style="padding:8px 16px; font-size:0.85rem; flex:1; color:#ef4444; border-color:#ef4444;" onclick="rejectLeave('${r.id}')">Reject</button>
             </div>` : ''}
         </div>
-    `).join('') : '<p style="text-align:center; padding:40px; color:var(--text-muted);">No leave requests.</p>';
+    `;
+    }).join('') : '<p style="text-align:center; padding:40px; color:var(--text-muted);">No leave requests.</p>';
 }
 
 window.approveLeave = (id) => {
@@ -715,12 +927,17 @@ function renderSites() {
                         <i class="fa-solid fa-folder"></i> ${project ? project.name : 'General Operations'}
                     </p>
                 </div>
-                <button class="btn-text" onclick="deleteSite('${s.id}')" style="color:var(--text-muted); padding:4px;">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-text" onclick="editSite('${s.id}')" style="color:var(--primary); padding:4px;" title="Edit">
+                        <i class="fa-solid fa-edit"></i>
+                    </button>
+                    <button class="btn-text" onclick="deleteSite('${s.id}')" style="color:var(--text-muted); padding:4px;" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
             </div>
             <div style="display:flex; gap:12px; font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
-                <span><i class="fa-solid fa-location-dot"></i> ${s.lat}, ${s.lng}</span>
+                <span><i class="fa-solid fa-location-dot"></i> ${s.coords ? s.coords.lat : '?'}, ${s.coords ? s.coords.lng : '?'}</span>
             </div>
             <div style="display:flex; gap:12px; font-size:0.8rem; color:${s.radius < 100 ? '#f59e0b' : 'var(--success)'};">
                  <span><i class="fa-solid fa-circle-dot"></i> Radius: ${s.radius}m</span>
@@ -731,32 +948,98 @@ function renderSites() {
 
 async function handleSiteSubmit(e) {
     e.preventDefault();
-    Loading.show();
     const fd = new FormData(e.target);
+
+    // Validate coordinates
+    const lat = parseFloat(fd.get('lat'));
+    const lng = parseFloat(fd.get('lng'));
     const radiusVal = parseInt(fd.get('radius')) || 200;
 
-    await store.addSite({
-        name: fd.get('name'),
-        projectId: fd.get('projectId') || null,
-        coords: {
-            lat: parseFloat(fd.get('lat')),
-            lng: parseFloat(fd.get('lng'))
-        },
-        radius: radiusVal
-    });
+    if (isNaN(lat) || isNaN(lng)) {
+        Toast.error('Invalid coordinates. Please enter valid latitude and longitude.');
+        return;
+    }
 
-    Loading.hide();
-    closeModal('site-modal');
-    e.target.reset();
-    Toast.success('Site added');
-    renderSites();
+    if (lat < -90 || lat > 90) {
+        Toast.error('Latitude must be between -90 and 90');
+        return;
+    }
+
+    if (lng < -180 || lng > 180) {
+        Toast.error('Longitude must be between -180 and 180');
+        return;
+    }
+
+    if (radiusVal < 10 || radiusVal > 10000) {
+        Toast.error('Radius must be between 10 and 10000 meters');
+        return;
+    }
+
+    Loading.show();
+    const editId = e.target.dataset.editId;
+
+    try {
+        const siteData = {
+            name: fd.get('name'),
+            projectId: fd.get('projectId') || null,
+            coords: {
+                lat: lat,
+                lng: lng
+            },
+            radius: radiusVal
+        };
+
+        if (editId) {
+            await store.updateSite(editId, siteData);
+            Toast.success('Site updated successfully');
+        } else {
+            await store.addSite(siteData);
+            Toast.success('Site added successfully');
+        }
+
+        Loading.hide();
+        closeModal('site-modal');
+        e.target.reset();
+        delete e.target.dataset.editId;
+
+        // Reset modal title
+        document.querySelector('#site-modal h3').innerText = 'Add Workplace / Geofence';
+        document.querySelector('#site-modal button[type=submit]').innerText = 'Save Site';
+
+        renderSites();
+
+        // Refresh dropdowns
+        initAdminDashboard();
+    } catch (error) {
+        Loading.hide();
+        console.error('Error adding site:', error);
+        Toast.error('Failed to add site: ' + error.message);
+    }
 }
 
 window.deleteSite = async (id) => {
     if (confirm('Deactivate this site?')) {
         await store.deleteSite(id);
         renderSites();
+        Toast.success('Site deactivated');
     }
+};
+
+window.editSite = (siteId) => {
+    const site = store.getAllSites().find(s => s.id === siteId);
+    if (!site) return;
+
+    const form = document.getElementById('site-form');
+    form.dataset.editId = siteId;
+    form.name.value = site.name;
+    form.projectId.value = site.projectId || '';
+    form.lat.value = site.coords ? site.coords.lat : '';
+    form.lng.value = site.coords ? site.coords.lng : '';
+    form.radius.value = site.radius || 200;
+
+    document.querySelector('#site-modal h3').innerText = 'Edit Site';
+    document.querySelector('#site-modal button[type=submit]').innerText = 'Update Site';
+    openModal('site-modal');
 };
 
 window.openAddWorkerModal = function () {
@@ -834,6 +1117,63 @@ async function handleCreateTask(e) {
 }
 
 // ========================================
+// ADMIN - REGISTRATIONS & LEAVES
+// ========================================
+
+function renderRegistrations() {
+    const regs = store.getRegistrations();
+    const list = document.getElementById('admin-registration-list');
+    if (!list) return;
+
+    list.innerHTML = regs.length ? regs.map(r => `
+        <div class="glass-panel" style="padding:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+             <div>
+                 <h4 style="margin:0;">${r.name}</h4>
+                 <p style="margin:4px 0 0; font-size:0.85rem; color:var(--text-secondary);">${r.email}</p>
+                 <p style="margin:2px 0 0; font-size:0.8rem; color:var(--text-muted);">${r.phone || 'No phone'}</p>
+             </div>
+             <div style="display:flex; gap:8px;">
+                 <button class="btn-primary" onclick="approveRegistration('${r.id}')" style="padding:6px 12px; font-size:0.8rem;">Approve</button>
+                 <button class="btn-outline" onclick="deleteRegistration('${r.id}')" style="padding:6px 12px; font-size:0.8rem; border-color:#ef4444; color:#ef4444;">Reject</button>
+             </div>
+        </div>
+    `).join('') : '<p style="text-align:center; padding:20px; color:var(--text-muted);">No pending registrations.</p>';
+}
+
+window.approveRegistration = async (id) => {
+    if (!confirm('Approve this user as Field Staff?')) return;
+    try {
+        await store.approveRegistration(id, 'field');
+        Toast.success('User approved and created');
+    } catch (e) {
+        console.error(e);
+        Toast.error('Approval failed: ' + e.message);
+    }
+};
+
+window.deleteRegistration = async (id) => {
+    if (!confirm('Reject and delete request?')) return;
+    await store.deleteRegistration(id);
+    Toast.success('Request rejected');
+};
+
+window.approveLeave = async (id) => {
+    if (!confirm('Approve leave request?')) return;
+    await store.updateLeaveRequest(id, 'approved');
+    Toast.success('Leave approved');
+    renderAdminLeaves(); // Explicit re-render if store not subscribing
+    updateAdminStats();
+};
+
+window.rejectLeave = async (id) => {
+    if (!confirm('Reject leave request?')) return;
+    await store.updateLeaveRequest(id, 'rejected');
+    Toast.success('Leave rejected');
+    renderAdminLeaves();
+    updateAdminStats();
+};
+
+// ========================================
 // FIELD - DASHBOARD
 // ========================================
 
@@ -841,6 +1181,7 @@ function initFieldDashboard() {
     const user = store.getCurrentUser();
     if (!user) return;
 
+    // Ensure Nav exists
     const el = document.getElementById('field-user-name');
     if (el) el.innerText = user.name;
 
@@ -850,6 +1191,45 @@ function initFieldDashboard() {
 
     renderWorkerStats(user.id);
     renderFieldTasks(user.id);
+    renderFieldLeaves();
+    renderFieldProfile(); // Pre-load profile data
+}
+
+function renderFieldProfile() {
+    const user = store.getCurrentUser();
+    if (!user) return;
+
+    const form = document.getElementById('field-profile-form');
+    if (form) {
+        form.elements.name.value = user.name || '';
+        form.elements.phone.value = user.phone || '';
+        form.elements.skills.value = user.skills || '';
+        document.getElementById('profile-email-display').innerText = user.email;
+        document.getElementById('profile-avatar-preview').src = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`;
+    }
+}
+
+async function handleProfileUpdate(e) {
+    e.preventDefault();
+    const user = store.getCurrentUser();
+    if (!user) return;
+
+    Loading.show();
+    const fd = new FormData(e.target);
+    const updates = {
+        name: fd.get('name'),
+        phone: fd.get('phone'),
+        skills: fd.get('skills')
+    };
+
+    try {
+        await store.updateWorker(user.id, updates);
+        Toast.success('Profile updated');
+    } catch (err) {
+        console.error(err);
+        Toast.error('Update failed');
+    }
+    Loading.hide();
 }
 
 function renderWorkerStats(userId) {
@@ -932,14 +1312,29 @@ function renderFieldLeaves() {
     if (!list) return;
 
     list.innerHTML = reqs.length ? reqs.map(r => `
-        <div class="glass-panel" style="margin-bottom:10px; padding:14px; border-left: 3px solid ${r.status === 'approved' ? 'var(--primary)' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}">
-            <div style="display:flex; justify-content:space-between;">
-                <strong>${r.type}</strong>
-                <span style="font-size:0.8rem; color:var(--text-muted);">${r.date}</span>
+        <div class="glass-panel" style="margin-bottom:10px; padding:14px; border-left: 3px solid ${r.status === 'approved' ? '#10b981' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-weight:600; font-size:1.05rem;">${r.type}</div>
+                    <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${r.date}</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">${r.reason || ''}</div>
+                </div>
+                <span style="
+                    font-size:0.75rem; 
+                    padding:4px 10px; 
+                    border-radius:12px; 
+                    background:${r.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : (r.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)')}; 
+                    color:${r.status === 'approved' ? '#10b981' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}; 
+                    border:1px solid ${r.status === 'approved' ? '#10b981' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}; 
+                    text-transform:uppercase; 
+                    font-weight:700;
+                    letter-spacing:0.5px;
+                ">
+                    ${r.status}
+                </span>
             </div>
-            <p style="font-size:0.85rem; margin-top:6px; color:var(--text-secondary);">
-                Status: <span style="color:${r.status === 'approved' ? 'var(--primary)' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}; font-weight:600; text-transform:uppercase;">${r.status}</span>
-            </p>
+            ${r.status === 'rejected' ? '<div style="margin-top:8px; font-size:0.8rem; color:#ef4444;"><i class="fa-solid fa-circle-info"></i> Request was declined.</div>' : ''}
+            ${r.status === 'approved' ? '<div style="margin-top:8px; font-size:0.8rem; color:#10b981;"><i class="fa-solid fa-check-circle"></i> Approved! Enjoy your time off.</div>' : ''}
         </div>
     `).join('') : '<p style="text-align:center; opacity:0.6; padding:40px;">No requests yet.</p>';
 }
@@ -1166,8 +1561,15 @@ function renderMap() {
 
         // Active staff
         store.getStaffStatus().filter(s => s.status === 'in').forEach(s => {
-            const lat = 18.457628 + (Math.random() - 0.5) * 0.02;
-            const lng = 73.850929 + (Math.random() - 0.5) * 0.02;
+            let lat, lng;
+            if (s.coords && s.coords.lat && s.coords.lng) {
+                lat = s.coords.lat;
+                lng = s.coords.lng;
+            } else {
+                // Fallback (e.g. site location or just unknown)
+                // For now, skip mapping if no coords
+                return;
+            }
 
             const icon = L.divIcon({
                 className: 'custom-marker',
@@ -1175,7 +1577,7 @@ function renderMap() {
                 iconSize: [14, 14]
             });
 
-            L.marker([lat, lng], { icon }).addTo(map).bindPopup(`<b>${s.name}</b><br>${s.lastLoc}`);
+            L.marker([lat, lng], { icon }).addTo(map).bindPopup(`<b>${s.name}</b><br>${s.lastLoc || 'Clocked In'}`);
         });
 
         Toast.success('Map loaded');

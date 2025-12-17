@@ -10,7 +10,14 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      ".firebase/**",
+      ".git/**",
+      "**/*.md",
+      "firestore.rules",
+      "firestore.indexes.json",
+      "storage.rules",
+      "public/**"
     ]
   }
 }
