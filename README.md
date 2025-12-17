@@ -83,4 +83,3 @@ Field-Hub/
 ├── USER_MANAGEMENT.md
 └── README.md
 
-This is according to our website , should we use it
