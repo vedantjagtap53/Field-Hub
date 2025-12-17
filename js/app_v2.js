@@ -103,9 +103,22 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme) {
-    const icon = document.querySelector('#theme-toggle i');
-    if (icon) {
-        icon.className = theme === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    const icons = document.querySelectorAll('.theme-icon');
+    icons.forEach(icon => {
+        icon.className = `theme-icon ${theme === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun'}`;
+    });
+}
+
+// Function to handle global toggle visibility
+function updateGlobalToggle(viewId) {
+    const globalToggle = document.getElementById('theme-toggle');
+    if (!globalToggle) return;
+
+    // Hide global toggle on dashboard views where we have dedicated buttons
+    if (viewId === 'admin-view' || viewId === 'field-view') {
+        globalToggle.style.display = 'none';
+    } else {
+        globalToggle.style.display = 'flex';
     }
 }
 
@@ -161,11 +174,14 @@ function setupEventListeners() {
             if (currentView && currentView.id === 'admin-view') {
                 updateAdminStats();
                 // We cautiously re-render active tabs to show live updates
-                const tabs = ['staff', 'tasks', 'attendance'];
+                const tabs = ['staff', 'projects', 'tasks', 'attendance'];
                 tabs.forEach(t => {
                     const tabEl = document.getElementById('tab-' + t);
                     if (tabEl && !tabEl.classList.contains('hidden')) {
                         if (t === 'staff') renderStaff();
+                        if (t === 'tasks') renderAdminTasks();
+                        if (t === 'staff') renderStaff();
+                        if (t === 'projects') renderProjects();
                         if (t === 'tasks') renderAdminTasks();
                         if (t === 'attendance') renderAttendanceLogs();
                     }
@@ -183,7 +199,7 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             store.logout();
             Toast.info('Logged out');
-            setTimeout(() => navigate('auth'), 400);
+            setTimeout(() => navigate('landing-page'), 400);
         });
     });
 
@@ -211,6 +227,7 @@ function setupEventListeners() {
 
             // Tab-specific actions
             if (targetId === 'map') setTimeout(() => { if (map) map.invalidateSize(); else renderMap(); }, 150);
+            if (targetId === 'projects') renderProjects();
             if (targetId === 'sites') renderSites();
             if (targetId === 'staff') renderStaff();
             if (targetId === 'tasks') renderAdminTasks();
@@ -218,6 +235,19 @@ function setupEventListeners() {
             if (targetId === 'attendance') renderAttendanceLogs();
             if (targetId === 'leave') renderAdminLeaves();
         });
+    });
+
+    // Project Form
+    document.getElementById('project-form')?.addEventListener('submit', handleProjectSubmit);
+
+    // Report FAB
+    document.getElementById('new-report-btn')?.addEventListener('click', () => {
+        const user = store.getCurrentUser();
+        if (store.getWorkerStatus(user.id) !== 'in') {
+            Toast.error('Please clock in to submit reports');
+            return;
+        }
+        openModal('report-modal');
     });
 
     // Field Navigation
@@ -517,6 +547,59 @@ async function handleWorkerSubmit(e) {
 }
 
 // ========================================
+// ADMIN - PROJECTS & SITES
+// ========================================
+
+function renderProjects() {
+    const projects = store.getProjects();
+    const list = document.getElementById('admin-project-list');
+    if (!list) return;
+
+    list.innerHTML = projects.length ? projects.map(p => {
+        const siteCount = store.getSites().filter(s => s.projectId === p.id).length;
+        return `
+        <div class="glass-panel" style="padding:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+                <div>
+                    <h4 style="margin:0; font-size:1rem;">${p.name}</h4>
+                    <p style="margin:4px 0 0; font-size:0.8rem; color:var(--text-secondary);">${p.manager || 'No Manager'}</p>
+                </div>
+                <button class="btn-text" onclick="deleteProject('${p.id}')" style="color:var(--text-muted); padding:4px;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px; line-height:1.4;">${p.description || 'No description'}</p>
+            <div style="display:flex; gap:12px; font-size:0.8rem; color:var(--text-secondary);">
+                <span><i class="fa-solid fa-building"></i> ${siteCount} Sites</span>
+            </div>
+        </div>`;
+    }).join('') : '<div class="glass-panel" style="grid-column:1/-1; padding:40px; text-align:center; color:var(--text-muted);">No projects yet.</div>';
+}
+
+async function handleProjectSubmit(e) {
+    e.preventDefault();
+    Loading.show();
+    const fd = new FormData(e.target);
+    await store.addProject({
+        name: fd.get('name'),
+        description: fd.get('description'),
+        manager: fd.get('manager')
+    });
+    Loading.hide();
+    closeModal('project-modal');
+    e.target.reset();
+    Toast.success('Project created');
+    renderProjects();
+}
+
+window.deleteProject = async (id) => {
+    if (confirm('Delete this project? Sites under it will remain but be unlinked.')) {
+        await store.deleteProject(id);
+        renderProjects();
+    }
+};
+
+// ========================================
 // ADMIN - ATTENDANCE LOGS
 // ========================================
 
@@ -617,54 +700,62 @@ window.approveLeave = (id) => {
 // ========================================
 
 function renderSites() {
-    const sites = store.getSites();
+    const sites = store.getSites(); // Only active sites
     const list = document.getElementById('admin-site-list');
     if (!list) return;
 
-    list.innerHTML = sites.length ? sites.map(s => `
-        <div class="glass-panel" style="padding:16px;">
+    list.innerHTML = sites.length ? sites.map(s => {
+        const project = store.getProjects().find(p => p.id === s.projectId);
+        return `
+        <div class="glass-panel" style="padding:18px;">
             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
-                <h4 style="margin:0; font-size:1.1rem; color:var(--text-primary);">${s.name}</h4>
-                <button class="icon-btn" onclick="deleteSite('${s.id}')" title="Delete Site" style="color:#ef4444;">
+                <div>
+                    <h4 style="margin:0; font-size:1rem;">${s.name}</h4>
+                    <p style="margin:4px 0 0; font-size:0.8rem; color:var(--text-secondary);">
+                        <i class="fa-solid fa-folder"></i> ${project ? project.name : 'General Operations'}
+                    </p>
+                </div>
+                <button class="btn-text" onclick="deleteSite('${s.id}')" style="color:var(--text-muted); padding:4px;">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
-            <div style="display:grid; gap:8px; font-size:0.9rem; color:var(--text-secondary);">
-                <div><i class="fa-solid fa-location-dot" style="width:20px; text-align:center;"></i> ${s.coords ? `${s.coords.lat}, ${s.coords.lng}` : 'No Coords'}</div>
-                <div><i class="fa-solid fa-circle-notch" style="width:20px; text-align:center;"></i> Radius: ${s.radius || 200}m</div>
+            <div style="display:flex; gap:12px; font-size:0.8rem; color:var(--text-secondary); margin-bottom:8px;">
+                <span><i class="fa-solid fa-location-dot"></i> ${s.lat}, ${s.lng}</span>
             </div>
-        </div>
-    `).join('') : '<p style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">No sites configured.</p>';
+            <div style="display:flex; gap:12px; font-size:0.8rem; color:${s.radius < 100 ? '#f59e0b' : 'var(--success)'};">
+                 <span><i class="fa-solid fa-circle-dot"></i> Radius: ${s.radius}m</span>
+            </div>
+        </div>`;
+    }).join('') : '<div class="glass-panel" style="grid-column:1/-1; padding:40px; text-align:center; color:var(--text-muted);">No sites configured.</div>';
 }
 
 async function handleSiteSubmit(e) {
     e.preventDefault();
+    Loading.show();
     const fd = new FormData(e.target);
-    const site = {
+    const radiusVal = parseInt(fd.get('radius')) || 200;
+
+    await store.addSite({
         name: fd.get('name'),
+        projectId: fd.get('projectId') || null,
         coords: {
             lat: parseFloat(fd.get('lat')),
             lng: parseFloat(fd.get('lng'))
         },
-        radius: parseInt(fd.get('radius')) || 200
-    };
+        radius: radiusVal
+    });
 
-    Loading.show();
-    await store.addSite(site);
-
-    // Refresh
-    e.target.reset();
-    closeModal('site-modal');
-    renderSites();
     Loading.hide();
-    Toast.success('Site added successfully');
+    closeModal('site-modal');
+    e.target.reset();
+    Toast.success('Site added');
+    renderSites();
 }
 
-window.deleteSite = async (siteId) => {
-    if (confirm('Are you sure you want to delete this workplace?')) {
-        await store.deleteSite(siteId);
+window.deleteSite = async (id) => {
+    if (confirm('Deactivate this site?')) {
+        await store.deleteSite(id);
         renderSites();
-        Toast.success('Site deleted');
     }
 };
 
@@ -754,16 +845,64 @@ function initFieldDashboard() {
     if (el) el.innerText = user.name;
 
     const att = store.getStaffStatus().find(s => s.id === user.id);
-    updateClockUI(att ? att.status : 'out', att ? att.lastLoc : 'Ready to start');
+    const status = att ? att.status : 'out';
+    updateClockUI(status, att ? att.lastLoc : 'Ready to start');
 
+    renderWorkerStats(user.id);
     renderFieldTasks(user.id);
 }
 
+function renderWorkerStats(userId) {
+    // We inject this into a new container or finding a place. 
+    // Let's create a container if it doesn't exist under attendance-card
+    let statsContainer = document.getElementById('field-stats-container');
+    if (!statsContainer) {
+        const authCard = document.querySelector('.attendance-card');
+        if (authCard && authCard.parentNode) {
+            statsContainer = document.createElement('div');
+            statsContainer.id = 'field-stats-container';
+            statsContainer.style.display = 'grid';
+            statsContainer.style.gridTemplateColumns = '1fr 1fr';
+            statsContainer.style.gap = '10px';
+            statsContainer.style.marginBottom = '20px';
+            authCard.parentNode.insertBefore(statsContainer, authCard.nextSibling);
+            // Actually insert AFTER attendance card
+        }
+    }
+
+    if (!statsContainer) return;
+
+    const stats = store.getWorkerStats(userId);
+
+    statsContainer.innerHTML = `
+        <div class="glass-panel" style="padding:15px; text-align:center;">
+             <h3 style="margin:0; font-size:1.5rem; color:var(--primary);">${stats.attendanceDays}</h3>
+             <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Days Present</p>
+        </div>
+        <div class="glass-panel" style="padding:15px; text-align:center;">
+             <h3 style="margin:0; font-size:1.5rem; color:var(--success);">${stats.completedTasks}</h3>
+             <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Tasks Done</p>
+        </div>
+    `;
+}
+
 function renderFieldTasks(userId) {
-    const tasks = store.getTasks(userId);
     const list = document.getElementById('field-task-list');
     if (!list) return;
 
+    const status = store.getWorkerStatus(userId);
+    if (status !== 'in') {
+        list.innerHTML = `
+            <div class="glass-panel" style="text-align:center; padding:30px; color:var(--text-muted);">
+                <i class="fa-solid fa-lock" style="font-size:2rem; margin-bottom:10px;"></i>
+                <h3>Clock In Required</h3>
+                <p>You must clock in to view and complete tasks.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const tasks = store.getTasks(userId);
     list.innerHTML = tasks.length ? tasks.map(task => `
         <div class="task-card glass-panel">
             <div class="task-header">
@@ -1123,6 +1262,92 @@ function updateDate() {
     });
 }
 
+// ========================================
+// REGISTRATION & LANDING
+// ========================================
+
+window.showAuth = function () {
+    navigate('auth');
+};
+
+async function handleRegistrationSubmit(e) {
+    e.preventDefault();
+    Loading.show();
+    const fd = new FormData(e.target);
+    try {
+        await store.addRegistration({
+            name: fd.get('name'),
+            email: fd.get('email'),
+            phone: fd.get('phone'),
+            skills: fd.get('skills')
+        });
+        closeModal('registration-modal');
+        e.target.reset();
+        alert('Registration submitted! An administrator will review your account.');
+    } catch (err) {
+        console.error(err);
+        Toast.error('Registration failed. Try again.');
+    } finally {
+        Loading.hide();
+    }
+}
+
+// ========================================
+// ADMIN - REGISTRATIONS
+// ========================================
+
+function renderRegistrations() {
+    const regs = store.getRegistrations();
+    const list = document.getElementById('admin-registration-list');
+    if (!list) return;
+
+    list.innerHTML = regs.length ? regs.map(r => `
+        <div class="glass-panel" style="padding:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <h4 style="margin:0; font-size:1rem;">${r.name}</h4>
+                <p style="margin:0; font-size:0.8rem; color:var(--text-muted);">${new Date(r.createdAt).toLocaleDateString()}</p>
+            </div>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:4px;"><i class="fa-solid fa-envelope"></i> ${r.email}</p>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:8px;"><i class="fa-solid fa-phone"></i> ${r.phone}</p>
+            ${r.skills ? `<p style="font-size:0.85rem; color:var(--text-muted); font-style:italic;">"${r.skills}"</p>` : ''}
+            
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <button class="btn-primary" style="flex:1; padding:6px; font-size:0.9rem;" onclick="approveRegistration('${r.id}', 'field')">Approve Field</button>
+                <button class="btn-outline" style="flex:1; padding:6px; font-size:0.9rem; color:#ef4444; border-color:#ef4444;" onclick="deleteRegistration('${r.id}')">Reject</button>
+            </div>
+        </div>
+    `).join('') : '<div class="glass-panel" style="grid-column:1/-1; padding:40px; text-align:center; color:var(--text-muted);">No pending registrations.</div>';
+}
+
+window.approveRegistration = async (id, role) => {
+    if (!confirm('Approve this user? They will be added to the Staff list.')) return;
+    try {
+        await store.approveRegistration(id, role);
+        Toast.success('User Approved');
+        renderRegistrations();
+        renderStaff();
+    } catch (e) {
+        console.error(e);
+        Toast.error('Error approving user');
+    }
+};
+
+window.deleteRegistration = async (id) => {
+    if (!confirm('Reject request?')) return;
+    await store.deleteRegistration(id);
+    renderRegistrations();
+    Toast.info('Request rejected');
+};
+
+// Add to window for modal calls
+window.handleRegistrationSubmit = handleRegistrationSubmit;
+
+// Helper to bind the new form
+document.addEventListener('DOMContentLoaded', () => {
+    const regForm = document.getElementById('registration-form');
+    if (regForm) regForm.addEventListener('submit', handleRegistrationSubmit);
+});
+
 window.openModal = function (id) {
     const modal = document.getElementById(id);
     if (modal) {
@@ -1138,3 +1363,26 @@ window.closeModal = function (id) {
         setTimeout(() => modal.classList.add('hidden'), 200);
     }
 };
+
+// ========================================
+// INITIALIZATION
+// ========================================
+
+(async () => {
+    // Setup listeners
+    setupEventListeners();
+
+    // Initialize Store (Check Auth)
+    await store.init();
+
+    // Check Status
+    const user = store.getCurrentUser();
+    if (user) {
+        console.log('⚡ Auto-navigating to', user.role);
+        navigate(user.role === 'admin' ? 'admin' : 'field');
+    } else {
+        // Stay on Landing Page (active by default)
+    }
+
+    updateDate();
+})();

@@ -4,7 +4,9 @@
 
 const state = {
     users: [],
+    projects: [],
     sites: [],
+    registrations: [],
     tasks: [],
     attendance: [],
     attendanceLogs: [],
@@ -46,6 +48,12 @@ async function initStore() {
         });
     });
 }
+
+// ... (loadUserProfile omitted for brevity, keeping original if possible or I need to include it)
+// I will keep loadUserProfile as is by starting replacement AFTER it if possible.
+// But I need to change `startRealtimeListeners` too.
+
+// Let's replace from `const state` down to `startRealtimeListeners` definition.
 
 async function loadUserProfile(firebaseUser) {
     try {
@@ -138,41 +146,55 @@ function startRealtimeListeners() {
         notify();
     }));
 
-    // 2. Sites
+    // 2. Projects
+    track(db.collection('projects').onSnapshot(snap => {
+        state.projects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        notify();
+    }));
+
+    // 3. Sites
     track(db.collection('sites').onSnapshot(snap => {
         state.sites = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
     }));
 
-    // 3. Tasks
+    // 4. Tasks
     track(db.collection('tasks').orderBy('createdAt', 'desc').onSnapshot(snap => {
         state.tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
     }));
 
-    // 4. Leave Requests
+    // 5. Leave Requests
     track(db.collection('leaveRequests').onSnapshot(snap => {
         state.leaveRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
     }));
 
-    // 5. Reports
+    // 6. Reports
     track(db.collection('reports').onSnapshot(snap => {
         state.reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
     }));
 
-    // 6. Attendance Logs
+    // 7. Attendance Logs
     track(db.collection('attendanceLogs').orderBy('timestamp', 'desc').limit(500).onSnapshot(snap => {
         state.attendanceLogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
     }));
 
-    // 7. Live Attendance Status
+    // 8. Live Attendance Status
     track(db.collection('attendance').onSnapshot(snap => {
         state.attendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
     }));
+
+    // 9. Registrations (Admin Only - but we bind it anyway, Firestore rules will block if unauthorized)
+    if (state.currentUser && state.currentUser.role === 'admin') {
+        track(db.collection('registrations').onSnapshot(snap => {
+            state.registrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            notify();
+        }, err => console.log('Registrations listener ignored (not admin)')));
+    }
 }
 
 function stopRealtimeListeners() {
@@ -202,65 +224,201 @@ const store = {
     },
 
     logout: async () => {
-        try {
-            stopRealtimeListeners();
-            await window.auth.signOut();
-            state.currentUser = null;
-            return { success: true };
-        } catch (e) {
-            console.error(e);
-        }
+        await window.auth.signOut();
+        stopRealtimeListeners();
+        state.currentUser = null;
+        state.initialized = false;
+        notify();
     },
 
     getCurrentUser: () => state.currentUser,
 
-    // --- DATA GETTERS (Synchronous access to local cache) ---
+    // --- USERS ---
     getUsers: () => state.users,
+
+    addWorker: async (userData) => {
+        const newUser = {
+            email: userData.email.toLowerCase(),
+            name: userData.name,
+            phone: userData.phone,
+            role: userData.role || 'field', // Default to field if not specified
+            active: true,
+            createdAt: new Date().toISOString(),
+            authId: null
+        };
+        return await window.db.collection('users').add(newUser);
+    },
+
+    updateWorker: async (id, data) => {
+        return await window.db.collection('users').doc(id).update(data);
+    },
+
+    // --- PROJECTS ---
+    getProjects: () => state.projects,
+
+    addProject: async (project) => {
+        return await window.db.collection('projects').add({
+            ...project,
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    deleteProject: async (id) => {
+        // Warning: This does not delete sub-sites automatically in NoSQL without Cloud Functions
+        return await window.db.collection('projects').doc(id).delete();
+    },
+
+    // --- REGISTRATIONS ---
+    getRegistrations: () => state.registrations,
+
+    addRegistration: async (data) => {
+        return await window.db.collection('registrations').add({
+            ...data,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    approveRegistration: async (regId, role = 'field') => {
+        const reg = state.registrations.find(r => r.id === regId);
+        if (!reg) throw new Error('Registration not found');
+
+        // Create User
+        await window.db.collection('users').add({
+            email: reg.email.toLowerCase(),
+            name: reg.name,
+            phone: reg.phone,
+            role: role,
+            active: true,
+            createdAt: new Date().toISOString(),
+            authId: null
+        });
+
+        // Delete Registration
+        await window.db.collection('registrations').doc(regId).delete();
+    },
+
+    deleteRegistration: async (regId) => {
+        return await window.db.collection('registrations').doc(regId).delete();
+    },
+
+    // --- SITES ---
+    getSites: () => state.sites,
     getAllSites: () => state.sites,
-    getSites: () => state.sites.filter(s => s.active !== false),
 
-    getTasks: (userId = null) => {
-        if (userId) return state.tasks.filter(t => t.assignedTo === userId);
-        return state.tasks;
+    addSite: async (site) => {
+        // site now includes projectId hopefully
+        return await window.db.collection('sites').add({
+            ...site,
+            projectId: site.projectId || null, // Ensure ID is saved if passed
+            active: true
+        });
     },
 
-    getLeaveRequests: (userId = null) => {
-        let reqs = state.leaveRequests;
-        if (userId) reqs = reqs.filter(r => r.userId === userId);
-
-        return reqs.map(r => {
-            const u = state.users.find(user => user.id === r.userId);
-            return { ...r, userName: u ? u.name : 'Unknown User' };
-        }).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    deleteSite: async (id) => {
+        return await window.db.collection('sites').doc(id).update({ active: false });
     },
 
-    getReports: () => {
-        return state.reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // --- ACCESSORS ---
+    getStaffStatus: () => state.attendance,
+    getTasks: (userId = null) => userId ? state.tasks.filter(t => t.assignedTo === userId) : state.tasks,
+
+    addTask: async (task) => {
+        return await window.db.collection('tasks').add({
+            ...task,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
     },
 
+    completeTask: async (id) => {
+        return await window.db.collection('tasks').doc(id).update({ status: 'completed' });
+    },
+
+    getLeaveRequests: (userId = null) => userId ? state.leaveRequests.filter(l => l.userId === userId) : state.leaveRequests,
+
+    addLeaveRequest: async (req) => {
+        return await window.db.collection('leaveRequests').add({
+            ...req,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    updateLeaveStatus: async (id, status) => {
+        return await window.db.collection('leaveRequests').doc(id).update({ status });
+    },
+
+    getReports: () => state.reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+
+    addReport: async (report) => {
+        return await window.db.collection('reports').add({
+            ...report,
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    // --- ATTENDANCE ---
     getAttendanceLogs: (userId = null, limit = 50) => {
         let logs = state.attendanceLogs;
         if (userId) logs = logs.filter(l => l.userId === userId);
         return logs.slice(0, limit);
     },
 
-    getStaffStatus: () => {
-        const fieldStaff = state.users.filter(u => u.role === 'field');
-        return fieldStaff.map(u => {
-            const att = state.attendance.find(a => a.userId === u.id);
-            return {
-                ...u,
-                status: att ? att.status : 'out',
-                lastLoc: att ? att.location : 'Unknown'
-            };
+    logAttendance: async (userId, action, siteId, location, coords = null) => {
+        const log = {
+            userId,
+            action,
+            siteId,
+            siteName: siteId ? (state.sites.find(s => s.id === siteId)?.name || 'Unknown Site') : null,
+            location,
+            coords: coords ? { lat: coords.latitude, lng: coords.longitude } : null,
+            timestamp: new Date().toISOString()
+        };
+        await window.db.collection('attendanceLogs').add(log);
+
+        // Update current status
+        const status = action === 'clock-in' ? 'in' : 'out';
+        await store.updateAttendance(userId, status, location, coords);
+    },
+
+    updateAttendance: async (userId, status, location, coords) => {
+        let name = 'Unknown';
+        const user = state.users.find(u => u.id === userId);
+        if (user) name = user.name;
+        else if (state.currentUser && state.currentUser.id === userId) name = state.currentUser.name;
+
+        await window.db.collection('attendance').doc(userId).set({
+            name: name,
+            status,
+            lastLoc: location,
+            lastUpdate: new Date().toISOString(),
+            coords: coords ? { lat: coords.latitude, lng: coords.longitude } : null
         });
     },
 
     getStats: () => {
-        const activeStaff = state.attendance.filter(a => a.status === 'in').length;
-        const completedTasks = state.tasks.filter(t => t.status === 'completed').length;
-        const pendingLeaves = state.leaveRequests.filter(l => l.status === 'pending').length;
-        return { activeStaff, completedTasks, totalTasks: state.tasks.length, pendingLeaves };
+        return {
+            activeStaff: state.attendance.filter(s => s.status === 'in').length,
+            completedTasks: state.tasks.filter(t => t.status === 'completed').length,
+            pendingLeaves: state.leaveRequests.filter(l => l.status === 'pending').length
+        };
+    },
+
+    getWorkerStatus: (userId) => {
+        const entry = state.attendance.find(a => a.id === userId);
+        return entry ? entry.status : 'out';
+    },
+
+    getWorkerStats: (userId) => {
+        const completedTasks = state.tasks.filter(t => t.assignedTo === userId && t.status === 'completed').length;
+        const pendingTasks = state.tasks.filter(t => t.assignedTo === userId && t.status !== 'completed').length;
+
+        // Count attendance days (unique dates in logs where action = clock-in)
+        const logs = state.attendanceLogs.filter(l => l.userId === userId && l.action === 'clock-in');
+        const uniqueDays = new Set(logs.map(l => new Date(l.timestamp).toDateString())).size;
+
+        return { completedTasks, pendingTasks, attendanceDays: uniqueDays };
     },
 
     findNearestSite: (coords) => {
@@ -292,168 +450,23 @@ const store = {
             }
         });
         return nearest;
-    },
-
-    // --- WRITE ACTIONS (Asynchronous) ---
-
-    addTask: async (task) => {
-        try {
-            task.createdAt = new Date().toISOString();
-            task.status = 'pending';
-            await window.db.collection('tasks').add(task);
-            return true;
-        } catch (e) {
-            console.error("Add Task Error:", e);
-            throw e;
-        }
-    },
-
-    completeTask: async (taskId) => {
-        try {
-            await window.db.collection('tasks').doc(taskId).update({
-                status: 'completed',
-                completedAt: new Date().toISOString()
-            });
-        } catch (e) { console.error(e); }
-    },
-
-    addLeaveRequest: async (req) => {
-        try {
-            req.createdAt = new Date().toISOString();
-            req.status = 'pending';
-            await window.db.collection('leaveRequests').add(req);
-        } catch (e) { console.error(e); }
-    },
-
-    updateLeaveStatus: async (reqId, status) => {
-        try {
-            await window.db.collection('leaveRequests').doc(reqId).update({ status });
-        } catch (e) { console.error(e); }
-    },
-
-    addWorker: async (worker) => {
-        try {
-            // Create Firestore Document
-            const newWorker = {
-                ...worker,
-                role: worker.role || 'field',
-                email: worker.email.toLowerCase(), // Normalize email
-                authId: null, // Placeholder for real Auth UID
-                active: true,
-                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}&background=3b82f6&color=fff`,
-                createdAt: new Date().toISOString()
-            };
-            delete newWorker.password;
-
-            await window.db.collection('users').add(newWorker);
-            return newWorker;
-        } catch (e) {
-            console.error(e);
-            throw e;
-        }
-    },
-
-    updateWorker: async (userId, updates) => {
-        try {
-            if (updates.name) {
-                updates.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(updates.name)}&background=3b82f6&color=fff`;
-            }
-            await window.db.collection('users').doc(userId).update(updates);
-        } catch (e) { console.error(e); }
-    },
-
-    toggleWorkerStatus: async (userId) => {
-        try {
-            const user = state.users.find(u => u.id === userId);
-            if (user) {
-                await window.db.collection('users').doc(userId).update({ active: !user.active });
-            }
-        } catch (e) { console.error(e); }
-    },
-
-    addReport: async (report) => {
-        try {
-            await window.db.collection('reports').add({
-                ...report,
-                timestamp: new Date().toISOString()
-            });
-        } catch (e) { console.error(e); }
-    },
-
-    addSite: async (site) => {
-        try {
-            await window.db.collection('sites').add({
-                ...site,
-                active: true,
-                createdAt: new Date().toISOString()
-            });
-        } catch (e) { console.error(e); }
-    },
-
-    deleteSite: async (siteId) => {
-        try {
-            await window.db.collection('sites').doc(siteId).update({ active: false });
-        } catch (e) { console.error(e); }
-    },
-
-    // --- ATTENDANCE ---
-
-    logAttendance: async (userId, action, siteId, location, coords = null) => {
-        try {
-            const userName = state.users.find(u => u.id === userId)?.name || 'Unknown';
-            const site = state.sites.find(s => s.id === siteId);
-            const siteName = site?.name || 'Unknown';
-
-            // Geofence Check
-            let withinGeofence = false;
-            let distance = 0;
-
-            if (site && site.coords && coords) {
-                distance = getDistance(coords.latitude, coords.longitude, site.coords.lat, site.coords.lng);
-                // Default radius 200m if not specified
-                const radius = site.radius || 200;
-                withinGeofence = distance <= radius;
-            }
-
-            // 1. Add to Log History
-            await window.db.collection('attendanceLogs').add({
-                userId, userName, action, siteId, siteName, location,
-                coords: coords ? { lat: coords.latitude, lng: coords.longitude } : null,
-                distance,
-                withinGeofence,
-                timestamp: new Date().toISOString()
-            });
-
-            // 2. Update Current Status
-            if (action === 'clock-in') {
-                // Upsert status
-                await window.db.collection('attendance').doc(userId).set({
-                    userId, userName, status: 'in', siteId, siteName, location,
-                    lastUpdate: new Date().toISOString()
-                });
-            } else {
-                await window.db.collection('attendance').doc(userId).set({
-                    userId, userName, status: 'out', siteId, siteName, location,
-                    lastUpdate: new Date().toISOString()
-                });
-            }
-        } catch (e) { console.error(e); }
     }
 };
 
-// Utilities
+// Utils
 function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371e3; // metres
     const φ1 = lat1 * Math.PI / 180;
     const φ2 = lat2 * Math.PI / 180;
     const Δφ = (lat2 - lat1) * Math.PI / 180;
     const Δλ = (lon2 - lon1) * Math.PI / 180;
+
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
         Math.cos(φ1) * Math.cos(φ2) *
         Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
     return R * c;
 }
 
-// Global Access
 window.store = store;

@@ -1441,7 +1441,7 @@ body {
 
 .theme-toggle {
     position: fixed;
-    top: 24px;
+    bottom: 24px;
     right: 24px;
     width: 52px;
     height: 52px;
@@ -1549,4 +1549,14 @@ a,
 .task-card,
 .stat-card {
     transition-property: all;
+}
+
+/* ========================================
+   OVERRIDDEN STYLES
+   ======================================== */
+
+/* Hide global theme toggle when logged in (Dashboards Active) */
+body:has(#admin-view.active) #theme-toggle,
+body:has(#field-view.active) #theme-toggle {
+    display: none !important;
 }

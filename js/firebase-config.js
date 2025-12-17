@@ -28,6 +28,11 @@ window.auth = auth;
 // Enable offline persistence
 db.enablePersistence()
     .catch((err) => {
+
+        // Set Auth Persistence to LOCAL (Fixes reload issue)
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => console.log('Auth persistence enabled'))
+            .catch((error) => console.error('Auth persistence error', error));
         if (err.code == 'failed-precondition') {
             console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
         } else if (err.code == 'unimplemented') {

@@ -31,9 +31,9 @@
         </div>
     </div>
 
-    <!-- Theme Toggle -->
-    <div class="theme-toggle" id="theme-toggle" title="Toggle theme">
-        <i class="fa-solid fa-moon"></i>
+    <!-- Theme Toggle (Global - Hidden on dashboards) -->
+    <div class="theme-toggle" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+        <i class="theme-icon fa-solid fa-moon"></i>
     </div>
 
     <div class="app-background">
@@ -52,8 +52,30 @@
 
     <!-- Modal Helpers -->
     <div id="app">
+        <!-- Landing Page (Default Public View) -->
+        <section id="landing-page" class="view active">
+            <div class="glass-panel text-center"
+                style="max-width: 600px; padding: 40px; margin: auto; margin-top: 10vh;">
+                <i class="fa-solid fa-satellite-dish pulse"
+                    style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h1 style="font-size: 2.5rem; margin-bottom: 10px;">FieldHub</h1>
+                <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 30px;">
+                    Integrated Field Operations & Management Platform
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button class="btn-primary" onclick="showAuth()" style="padding: 12px 30px; font-size: 1.1rem;">
+                        <i class="fa-solid fa-right-to-bracket"></i> Login
+                    </button>
+                    <button class="btn-outline" onclick="openModal('registration-modal')"
+                        style="padding: 12px 30px; font-size: 1.1rem;">
+                        <i class="fa-solid fa-user-plus"></i> Register
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- Auth View -->
-        <section id="auth-view" class="view active">
+        <section id="auth-view" class="view hidden">
             <div class="glass-panel auth-card">
                 <div class="logo-area">
                     <i class="fa-solid fa-satellite-dish pulse"></i>
@@ -75,11 +97,11 @@
                 <form id="login-form">
                     <div class="input-group">
                         <i class="fa-solid fa-envelope"></i>
-                        <input type="email" placeholder="Email Address" value="demo@geoops.org" required>
+                        <input type="email" placeholder="Email Address" required>
                     </div>
                     <div class="input-group">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" placeholder="Password" value="password" required>
+                        <input type="password" placeholder="Password" required>
                     </div>
                     <button type="submit" class="btn-primary">
                         Access Portal <i class="fa-solid fa-arrow-right"></i>
@@ -98,8 +120,10 @@
                 <ul class="nav-links">
                     <li class="active"><a href="#overview"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
                     <li><a href="#map"><i class="fa-solid fa-map-location-dot"></i> Live Map</a></li>
+                    <li><a href="#projects"><i class="fa-solid fa-folder-tree"></i> Projects</a></li>
                     <li><a href="#sites"><i class="fa-solid fa-building"></i> Sites</a></li>
                     <li><a href="#staff"><i class="fa-solid fa-users"></i> Staff</a></li>
+                    <li><a href="#registrations"><i class="fa-solid fa-user-plus"></i> Approvals</a></li>
                     <li><a href="#tasks"><i class="fa-solid fa-list-check"></i> Tasks</a></li>
                     <li><a href="#attendance"><i class="fa-solid fa-clock"></i> Attendance</a></li>
                     <li><a href="#reports"><i class="fa-solid fa-file-lines"></i> Reports</a></li>
@@ -109,8 +133,14 @@
                     <img src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" alt="Admin">
                     <div class="user-info">
                         <h4>Jane Admin</h4>
-                        <span id="logout-btn" style="cursor: pointer;"><i
-                                class="fa-solid fa-arrow-right-from-bracket"></i> Logout</span>
+                        <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                            <span onclick="toggleTheme()"
+                                style="cursor: pointer; font-size:0.85rem; color:var(--text-secondary);"><i
+                                    class="theme-icon fa-solid fa-moon"></i> Theme</span>
+                            <span id="logout-btn"
+                                style="cursor: pointer; font-size:0.85rem; color:var(--text-secondary);"><i
+                                    class="fa-solid fa-arrow-right-from-bracket"></i> Logout</span>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -177,6 +207,21 @@
                             style="width: 100%; height: 100%; border-radius: 16px; overflow: hidden; z-index: 1;"></div>
                     </div>
 
+                    <!-- Projects Tab -->
+                    <div id="tab-projects" class="tab-content hidden">
+                        <div class="glass-panel" style="padding: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3>Projects & Operations</h3>
+                                <button class="btn-primary" onclick="openModal('project-modal')"><i
+                                        class="fa-solid fa-folder-plus"></i> Add Project</button>
+                            </div>
+                            <div id="admin-project-list" class="responsive-grid">
+                                <!-- Projects populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Sites Tab -->
                     <div id="tab-sites" class="tab-content hidden">
                         <div class="glass-panel" style="padding: 20px;">
@@ -188,6 +233,16 @@
                             </div>
                             <div id="admin-site-list" class="responsive-grid">
                                 <!-- Sites populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registrations Tab -->
+                    <div id="tab-registrations" class="tab-content hidden">
+                        <div class="glass-panel" style="padding: 20px;">
+                            <h3>Pending Registrations</h3>
+                            <div id="admin-registration-list" class="responsive-grid" style="margin-top: 20px;">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
                     </div>
@@ -276,6 +331,9 @@
                     <span>Hello,</span>
                     <h3 id="field-user-name">Staff Member</h3>
                 </div>
+                <button class="icon-btn" onclick="toggleTheme()" title="Theme" style="margin-right:8px;">
+                    <i class="theme-icon fa-solid fa-moon"></i>
+                </button>
                 <button class="icon-btn" id="field-logout" title="Logout">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 </button>
@@ -399,12 +457,33 @@
             </div>
         </div>
 
+        <!-- Project Modal -->
+        <div id="project-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Create New Project</h3>
+                <form id="project-form">
+                    <input type="text" name="name" placeholder="Project Name" required class="input-light">
+                    <textarea name="description" placeholder="Project Description" rows="3"
+                        class="input-light"></textarea>
+                    <input type="text" name="manager" placeholder="Project Manager" class="input-light">
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('project-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Site Modal -->
         <div id="site-modal" class="modal hidden">
             <div class="modal-content glass-panel">
                 <h3>Add Workplace / Geofence</h3>
                 <form id="site-form">
                     <input type="text" name="name" placeholder="Site Name" required class="input-light">
+                    <select name="projectId" id="site-project-select" class="input-light">
+                        <option value="">-- No Project (General) --</option>
+                        <!-- Populated by JS -->
+                    </select>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" name="lat" placeholder="Latitude" required class="input-light">
                         <input type="text" name="lng" placeholder="Longitude" required class="input-light">
@@ -446,6 +525,27 @@
                     <div class="modal-actions">
                         <button type="button" class="btn-text" onclick="closeModal('worker-modal')">Cancel</button>
                         <button type="submit" class="btn-primary">Add Worker</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Registration Modal (Public) -->
+        <div id="registration-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Volunteer Registration</h3>
+                <form id="registration-form">
+                    <input type="text" name="name" placeholder="Full Name" required class="input-light">
+                    <input type="email" name="email" placeholder="Email Address" required class="input-light">
+                    <input type="tel" name="phone" placeholder="Phone Number" required class="input-light">
+                    <input type="text" name="skills" placeholder="Skills / Experience (Optional)" class="input-light">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
+                        Your account will be reviewed by an administrator. You will be able to login once approved.
+                    </p>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text"
+                            onclick="closeModal('registration-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Submit Registration</button>
                     </div>
                 </form>
             </div>
