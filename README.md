@@ -8,7 +8,7 @@
 ---
 
 ## 🚀 Live Demo
-### [🔗 Launch Field Hub Application](https://vedantjagpass.github.io/Field-Hub)
+### [🔗 Launch Field Hub Application](https://thefieldhub.web.app)
 
 ---
 
