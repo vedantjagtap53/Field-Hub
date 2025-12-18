@@ -106,5 +106,5 @@ Field-Hub/
 
 
 <div align="center">
-  <p>Made with ❤️ for Social Good</p>
+  <p>Made with ❤️ for Social Good of People</p>
 </div>
