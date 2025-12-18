@@ -8,7 +8,7 @@
 ---
 
 ## 🚀 Live Demo
-### [🔗 Launch Field Hub Application](https://vedantjagpass.github.io/Field-Hub)
+### [🔗 Launch Field Hub Application](https://thefieldhub.web.app)
 
 ---
 
@@ -106,5 +106,5 @@ Field-Hub/
 
 
 <div align="center">
-  <p>Made with ❤️ for Social Good</p>
+  <p>Made with ❤️ for Social Good of People</p>
 </div>
