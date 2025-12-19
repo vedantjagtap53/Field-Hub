@@ -832,7 +832,7 @@ function renderAttendanceLogs() {
                 </div>
                 <div style="font-size:0.85rem; color:var(--text-secondary); display:flex; gap:16px; flex-wrap:wrap;">
                     <span><i class="fa-solid fa-location-dot"></i> ${log.siteName}</span>
-                    <span><i class="fa-solid fa-ruler"></i> ${log.distance.toFixed(2)} km</span>
+                    <span><i class="fa-solid fa-ruler"></i> ${(log.distance !== undefined && log.distance !== null) ? log.distance.toFixed(2) : '--'} km</span>
                     <span style="color:${log.withinGeofence ? 'var(--primary)' : '#f59e0b'};">
                         <i class="fa-solid fa-${log.withinGeofence ? 'check-circle' : 'exclamation-triangle'}"></i> 
                         ${log.withinGeofence ? 'Within geofence' : 'Outside geofence'}
