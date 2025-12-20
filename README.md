@@ -53,17 +53,17 @@ Unlike simple record-keeping tools, Field Hub focuses on **accountability and im
 ## 📸 Interface Preview
 
 <div align="center">
-  <h3>Landing & Home</h3>
+  <h3>Landing page & Home</h3>
   <img src="screenshots/homepage.png" alt="Home Page" width="800"/>
 </div>
 
 <div align="center">
-  <h3>Admin Command Center</h3>
+  <h3>Admin Panel</h3>
   <img src="screenshots/admin-dashboard.png" alt="Admin Dashboard" width="800"/>
 </div>
 
 <div align="center">
-  <h3>Field Worker </h3>
+  <h3>Worker Dashboard </h3>
   <img src="screenshots/worker-dashboard.png" alt="Worker Dashboard" width="300"/>
 </div>
 
