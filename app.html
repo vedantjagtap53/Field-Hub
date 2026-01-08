@@ -7,6 +7,8 @@
     <title>FieldHub | Integrated Field Operations</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
+
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -105,7 +107,8 @@
                     <li><a href="#registrations"><i class="fa-solid fa-user-plus"></i> Approvals</a></li>
                     <li><a href="#tasks"><i class="fa-solid fa-list-check"></i> Tasks</a></li>
                     <li><a href="#attendance"><i class="fa-solid fa-clock"></i> Attendance</a></li>
-                    <li><a href="#reports"><i class="fa-solid fa-file-lines"></i> Reports</a></li>
+                    <li><a href="#reports"><i class="fa-solid fa-file-alt"></i> Reports</a></li>
+                    <li><a href="#messages"><i class="fa-solid fa-comments"></i> Messages</a></li>
                     <li><a href="#leave"><i class="fa-solid fa-calendar-check"></i> Leave</a></li>
                 </ul>
                 <div class="user-profile">
@@ -259,7 +262,21 @@
                     <!-- Attendance Tab -->
                     <div id="tab-attendance" class="tab-content hidden">
                         <div class="glass-panel" style="padding: 20px;">
-                            <h3 style="margin:0 0 20px 0;">Attendance Logs</h3>
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                                <h3 style="margin:0;">Attendance Logs</h3>
+                                <div class="dropdown">
+                                    <button class="btn-outline btn-sm dropdown-trigger"
+                                        onclick="toggleDropdown('attendance-export-menu')">
+                                        <i class="fa-solid fa-download"></i> Export
+                                    </button>
+                                    <div id="attendance-export-menu" class="dropdown-menu hidden glass-panel"
+                                        style="position:absolute; right:0; z-index:10; width:150px; flex-direction:column;">
+                                        <button class="btn-text" onclick="exportAttendance('csv')">CSV</button>
+                                        <button class="btn-text" onclick="exportAttendance('json')">JSON</button>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="attendance-log-list" style="max-height: 70vh; overflow-y: auto;">
                                 <!-- Attendance logs populated by JS -->
                             </div>
@@ -269,22 +286,28 @@
                     <!-- Reports Tab -->
                     <div id="tab-reports" class="tab-content hidden">
                         <div class="glass-panel" style="padding: 20px;">
-                            <h3 style="margin:0 0 20px 0;">Field Reports</h3>
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                                <h3 style="margin:0;">Field Reports</h3>
+                                <div class="dropdown">
+                                    <button class="btn-outline btn-sm dropdown-trigger"
+                                        onclick="toggleDropdown('reports-export-menu')">
+                                        <i class="fa-solid fa-download"></i> Export
+                                    </button>
+                                    <div id="reports-export-menu" class="dropdown-menu hidden glass-panel"
+                                        style="position:absolute; right:0; z-index:10; width:150px; flex-direction:column;">
+                                        <button class="btn-text" onclick="exportReports('csv')">CSV</button>
+                                        <button class="btn-text" onclick="exportReports('json')">JSON</button>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="admin-reports-list" style="max-height: 70vh; overflow-y: auto;">
                                 <!-- Reports populated by JS -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Reports Tab -->
-                    <div id="tab-reports" class="tab-content hidden">
-                        <div class="glass-panel" style="padding: 20px;">
-                            <h3 style="margin:0 0 20px 0;">Field Reports</h3>
-                            <div id="admin-reports-list" style="max-height: 70vh; overflow-y: auto;">
-                                <!-- Reports populated by JS -->
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- Leave Tab -->
                     <div id="tab-leave" class="tab-content hidden">
@@ -294,6 +317,11 @@
                                 <!-- Leave Items -->
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Messages Tab -->
+                    <div id="tab-messages" class="tab-content hidden">
+                        <div id="admin-chat-container" style="height: 100%;"></div>
                     </div>
 
                 </div>
@@ -350,10 +378,21 @@
                     <div id="field-leave-list"></div>
                 </div>
 
-                <div class="fab-wrapper">
-                    <button class="fab" id="new-report-btn">
-                        <i class="fa-solid fa-camera"></i>
+                <!-- Messages Tab -->
+                <div id="field-tab-messages" class="field-tab hidden" style="height: calc(100vh - 140px);">
+                    <!-- Filled by JS -->
+                </div>
+
+                <!-- Reports Tab (New) -->
+                <div id="field-tab-reports" class="field-tab hidden" style="padding: 20px;">
+                    <h3>My Reports</h3>
+                    <button class="btn-primary" onclick="openModal('report-modal')"
+                        style="width:100%; margin-bottom:20px;">
+                        <i class="fa-solid fa-camera"></i> Submit New Report
                     </button>
+                    <div id="field-my-reports-list" style="display:flex; flex-direction:column; gap:12px;">
+                        <!-- Filled by JS -->
+                    </div>
                 </div>
 
 
@@ -416,6 +455,8 @@
 
             <nav class="mobile-nav glass-panel">
                 <a href="#home" class="active" data-target="field-tab-home"><i class="fa-solid fa-house"></i></a>
+                <a href="#messages" data-target="field-tab-messages"><i class="fa-solid fa-comments"></i></a>
+                <a href="#reports" data-target="field-tab-reports"><i class="fa-solid fa-camera"></i></a>
                 <a href="#leave" data-target="field-tab-leave"><i class="fa-solid fa-calendar-day"></i></a>
                 <a href="#profile" data-target="field-tab-profile"><i class="fa-solid fa-user-gear"></i></a>
             </nav>
@@ -586,6 +627,25 @@
                 </form>
             </div>
         </div>
+    </div>
+
+    <!-- Broadcast Modal -->
+    <div id="broadcast-modal" class="modal hidden" style="display:none;">
+        <div class="modal-content glass-panel">
+            <h3>📢 Broadcast Alert</h3>
+            <p style="color:var(--text-secondary); margin-bottom:15px;">Send a message to ALL field staff instantly.</p>
+            <form onsubmit="window.sendBroadcast(event)">
+                <textarea id="broadcast-input" rows="4" class="input-light" placeholder="Type your alert message..."
+                    required></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('broadcast-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary" style="background:var(--primary);">Send Alert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    </div>
 
     </div>
 
@@ -602,7 +662,8 @@
     <script src="js/firebase-config.js"></script>
 
     <script src="js/store_v2.js"></script>
-    <script src="js/app_v2.js"></script>
+    <script src="js/features/export_utils.js"></script>
+    <script type="module" src="js/app_v2.js"></script>
 
     <!-- Failsafe Splash Removal -->
     <script>

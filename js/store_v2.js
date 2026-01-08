@@ -11,7 +11,9 @@ const state = {
     attendance: [],
     attendanceLogs: [],
     leaveRequests: [],
+    leaveRequests: [],
     reports: [],
+    messages: [],
     currentUser: null,
     initialized: false
 };
@@ -188,7 +190,13 @@ function startRealtimeListeners() {
         notify();
     }));
 
-    // 9. Registrations (Admin Only - but try to listen, if permission denied, it will catch error)
+    // 9. Messages (Last 100)
+    track(db.collection('messages').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
+        state.messages = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
+        notify();
+    }));
+
+    // 10. Registrations (Admin Only - but try to listen, if permission denied, it will catch error)
     // We remove the strict `if admin` check here because rules handle permissions, and sometimes `state.currentUser` isn't fully ready synchronously.
     // Better to attempt and fail gracefully, or rely on rules.
     track(db.collection('registrations').onSnapshot(snap => {
@@ -276,6 +284,17 @@ const store = {
 
     updateWorker: async (id, data) => {
         return await window.db.collection('users').doc(id).update(data);
+    },
+
+    updateProfile: async (data) => {
+        if (!state.currentUser) throw new Error("Not logged in");
+        const id = state.currentUser.id;
+        await window.db.collection('users').doc(id).update(data);
+        // Update local state immediately
+        const u = state.users.find(u => u.id === id);
+        if (u) Object.assign(u, data);
+        if (state.currentUser.id === id) Object.assign(state.currentUser, data);
+        notify();
     },
 
     deleteWorker: async (id) => {
@@ -424,6 +443,59 @@ const store = {
             ...report,
             createdAt: new Date().toISOString()
         });
+    },
+
+    addReport: async (report) => {
+        return await window.db.collection('reports').add({
+            ...report,
+            createdAt: new Date().toISOString()
+        });
+    },
+
+    // --- MESSAGING ---
+    getMessages: (counterpartId = null) => {
+        if (!state.currentUser) return [];
+        const myId = state.currentUser.id;
+
+        // Broadcasts (receiverId == 'all')
+        if (counterpartId === 'all') {
+            return state.messages.filter(m => m.receiverId === 'all' || m.senderId === 'all');
+        }
+
+        const broadcasts = state.messages.filter(m => m.receiverId === 'all');
+        if (counterpartId === 'broadcast') return broadcasts; // Legacy support check
+
+        // 1:1 Chat
+        if (counterpartId) {
+            return state.messages.filter(m =>
+                (m.senderId === myId && m.receiverId === counterpartId) ||
+                (m.senderId === counterpartId && m.receiverId === myId)
+            );
+        }
+
+        // Return all visible messages for current user
+        return state.messages.filter(m =>
+            m.receiverId === 'all' ||
+            m.senderId === myId ||
+            m.receiverId === myId
+        );
+    },
+
+    sendMessage: async (receiverId, content) => {
+        if (!state.currentUser) throw new Error('Not logged in');
+        return await window.db.collection('messages').add({
+            senderId: state.currentUser.id,
+            receiverId: receiverId,
+            content: content,
+            timestamp: new Date().toISOString(),
+            read: false,
+            senderName: state.currentUser.name
+        });
+    },
+
+    markAsRead: async (msgId) => {
+        // Optional: implement if needed
+        // return await window.db.collection('messages').doc(msgId).update({ read: true });
     },
 
     // --- ATTENDANCE ---
