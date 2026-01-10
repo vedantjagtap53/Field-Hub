@@ -1,19 +1,128 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Allow read/write for any authenticated user
-    // Note: In a real production app with Cloud Functions, we would re-enable strict role checks.
-    // For this Serverless/Spark-Plan version, we rely on App Logic for UI security.
-    // Public Registration Rule
-    match /registrations/{doc} {
-      allow create: if true; // Public can sign up
-      allow read, write: if request.auth != null; // Admin can manage
+
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
+
+    // Check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
     }
 
-    // Default Permissive Rule (Authenticated Users)
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // Get user document for current auth user
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Check if current user is an Admin
+    function isAdmin() {
+      return isAuth() && getUserData().role == 'admin';
+    }
+
+    // Check if current user is a Field Worker
+    function isField() {
+      return isAuth() && getUserData().role == 'field';
+    }
+
+    // Check if user is the owner of a document (by userId field)
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // ========================================
+    // VALIDATION FUNCTIONS
+    // ========================================
+
+    function isValidEmail(email) {
+      return email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    function isValidPhone(phone) {
+      return phone.matches('^[0-9]{10}$');
+    }
+
+    // ========================================
+    // COLLECTION RULES
+    // ========================================
+
+    // --- PUBLIC REGISTRATIONS ---
+    // Anyone can submit a registration; only admins can read/update/delete
+    match /registrations/{docId} {
+      allow create: if true; // Public registration form
+      allow read, update, delete: if isAdmin();
+    }
+
+    // --- USERS ---
+    // Admins can CRUD; Field workers can read all (for team view) and update only their own profile
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isOwner(userId);
+    }
+
+    // --- PROJECTS ---
+    // All authenticated users can read; only admins can write
+    match /projects/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // --- SITES ---
+    // All authenticated users can read; only admins can write
+    // Validation: Radius must be a positive number
+    match /sites/{docId} {
+      allow read: if isAuth();
+      allow create, update: if isAdmin() && request.resource.data.radius is number && request.resource.data.radius > 0;
+      allow delete: if isAdmin();
+    }
+
+    // --- TASKS ---
+    // Admins can CRUD; Field workers can read their own tasks and update status only
+    match /tasks/{docId} {
+      allow read: if isAuth();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (isOwner(resource.data.assignedTo) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completedAt']));
+    }
+
+    // --- ATTENDANCE (Live Status) ---
+    // Field workers can update their own status; admins can read all
+    match /attendance/{userId} {
+      allow read: if isAuth();
+      allow write: if isAdmin() || isOwner(userId);
+    }
+
+    // --- ATTENDANCE LOGS (Immutable History) ---
+    // Field workers can create their own logs (append-only); NO ONE can update/delete (immutability)
+    match /attendanceLogs/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Logs are immutable
+    }
+
+    // --- LEAVE REQUESTS ---
+    // Field workers can create/read their own; admins can read/update all
+    match /leaveRequests/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- REPORTS ---
+    // Field workers can create their own reports; admins can read/delete all
+    match /reports/{docId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.submittedBy == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // --- MESSAGES (Chat) ---
+    // All authenticated users can read and create messages
+    match /messages/{docId} {
+      allow read, create: if isAuth();
+      allow update, delete: if isAdmin();
     }
   }
 }

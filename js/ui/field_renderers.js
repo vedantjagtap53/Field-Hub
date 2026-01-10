@@ -95,6 +95,14 @@ export const FieldRenderers = {
                     ">
                         ${r.status}
                     </span>
+                    </span>
+                </div>
+                <div style="font-size:0.9rem; color:var(--text-primary); margin-bottom:8px;">
+                    <i class="fa-regular fa-calendar" style="margin-right:6px; color:var(--primary);"></i>
+                    ${(r.startDate && r.endDate) ? `${r.startDate} <span style="color:var(--text-muted); font-size:0.8em; margin:0 4px;">to</span> ${r.endDate}` : (r.date || 'No Date Selected')}
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:10px;">
+                    ${r.reason}
                 </div>
                 ${r.status === 'rejected' ? '<div style="margin-top:8px; font-size:0.8rem; color:#ef4444;"><i class="fa-solid fa-circle-info"></i> Request was declined.</div>' : ''}
                 ${r.status === 'approved' ? '<div style="margin-top:8px; font-size:0.8rem; color:#10b981;"><i class="fa-solid fa-check-circle"></i> Approved! Enjoy your time off.</div>' : ''}

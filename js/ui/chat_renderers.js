@@ -89,7 +89,7 @@ export const ChatRenderers = {
                      onclick="window.selectChatUser('${u.id}')"
                      style="padding:12px; border-radius:8px; display:flex; gap:12px; cursor:pointer; margin-bottom:5px; background:${isActive ? 'rgba(59,130,246,0.1)' : 'transparent'}; border:1px solid ${isActive ? 'var(--primary)' : 'transparent'}; transition:all 0.2s;">
                     <div style="position:relative;">
-                        <img src="${u.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name) + '&background=random'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <img src="${(u.avatar && u.avatar !== 'undefined') ? u.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.name) + '&background=random'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                         <span style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:${status === 'in' ? '#10b981' : '#6b7280'}; border:2px solid var(--bg-body);"></span>
                     </div>
                     <div style="flex:1; overflow:hidden;">
@@ -138,7 +138,7 @@ export const ChatRenderers = {
             <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.02);">
                 ${activeChatUserId === 'all'
                 ? `<div style="width:36px; height:36px; border-radius:50%; background:var(--warning); display:flex; align-items:center; justify-content:center; color:#fff;"><i class="fa-solid fa-tower-broadcast"></i></div>`
-                : `<img src="${user.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=random'}" style="width:36px; height:36px; border-radius:50%;">`
+                : `<img src="${(user.avatar && user.avatar !== 'undefined') ? user.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name) + '&background=random'}" style="width:36px; height:36px; border-radius:50%;">`
             }
                 <div>
                     <h4 style="margin:0; font-size:1rem;">${user.name}</h4>

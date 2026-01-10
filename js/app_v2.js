@@ -11,14 +11,143 @@ import { ChartUtils } from './core/charts.js';
 import { AdminRenderers } from './ui/admin_renderers.js';
 import { FieldRenderers } from './ui/field_renderers.js';
 import { ChatRenderers } from './ui/chat_renderers.js';
+import { CalendarRenderer } from './ui/calendar_renderer.js';
+
 // store is global from store_v2.js (loaded before this script)
 // ExportUtils is global from export_utils.js
 
 // Make UI helpers globally available for HTML onclicks
+window.UI = UI; // Expose full UI object
 window.openModal = UI.openModal;
 window.closeModal = UI.closeModal;
 window.Toast = Toast;
 window.Loading = Loading;
+window.ChartUtils = ChartUtils; // Expose for analytics modal
+
+// Data Management Handlers (Global for HTML onclicks)
+window.exportFullBackup = async () => {
+    Loading.show();
+    try {
+        await ExportUtils.exportFullDatabase();
+        Toast.success('Full backup downloaded!');
+    } catch (e) {
+        console.error(e);
+        Toast.error('Backup failed');
+    }
+    Loading.hide();
+};
+
+window.previewArchive = () => {
+    const months = parseInt(document.getElementById('archive-months').value) || 6;
+    const oldData = ExportUtils.getOldData(months);
+    const previewEl = document.getElementById('archive-preview');
+    previewEl.style.display = 'block';
+    previewEl.innerHTML = `
+        <strong>Found ${oldData.totalCount} records older than ${months} months:</strong><br>
+        <span style="font-size: 0.9rem;">
+            • Attendance Logs: ${oldData.attendanceLogs.length}<br>
+            • Reports: ${oldData.reports.length}<br>
+            • Completed Tasks: ${oldData.tasks.length}<br>
+            • Closed Leave Requests: ${oldData.leaveRequests.length}
+        </span>
+    `;
+};
+
+window.exportArchive = () => {
+    const months = parseInt(document.getElementById('archive-months').value) || 6;
+    const oldData = ExportUtils.getOldData(months);
+    if (oldData.totalCount === 0) {
+        Toast.info('No old data found to export.');
+        return;
+    }
+    const date = new Date().toISOString().split('T')[0];
+    ExportUtils.exportJSON(oldData, `FieldHub_Archive_${months}mo_${date}`);
+    Toast.success(`Exported ${oldData.totalCount} records.`);
+};
+
+window.archiveAndPurge = async () => {
+    const months = parseInt(document.getElementById('archive-months').value) || 6;
+    if (!confirm(`⚠️ This will:\n1. Download archive of data older than ${months} months.\n2. PERMANENTLY DELETE that data from the cloud.\n\nProceed?`)) {
+        return;
+    }
+    Loading.show();
+    try {
+        const result = await ExportUtils.archiveAndPurge(months);
+        if (result.success) {
+            Toast.success(result.message);
+            if (result.remaining > 0) {
+                Toast.info(`${result.remaining} more records remain. Run again to continue.`);
+            }
+        } else {
+            Toast.info(result.message);
+        }
+    } catch (e) {
+        console.error(e);
+        Toast.error('Purge operation failed');
+    }
+    Loading.hide();
+};
+
+// Admin Actions (Global Exposure for HTML onclicks)
+window.approveLeave = async (id) => {
+    if (!confirm('Approve this leave request?')) return;
+    try {
+        Loading.show();
+        await window.store.updateLeaveRequest(id, 'approved');
+        AdminRenderers.renderAdminLeaves();
+        CalendarRenderer.render(); // Update calendar too
+        Loading.hide();
+        Toast.success('Leave approved');
+    } catch (e) {
+        Loading.hide();
+        console.error(e);
+        Toast.error('Failed to update leave');
+    }
+};
+
+window.rejectLeave = async (id) => {
+    if (!confirm('Reject this leave request?')) return;
+    try {
+        Loading.show();
+        await window.store.updateLeaveRequest(id, 'rejected');
+        AdminRenderers.renderAdminLeaves();
+        CalendarRenderer.render(); // Update calendar too
+        Loading.hide();
+        Toast.info('Leave rejected');
+    } catch (e) {
+        Loading.hide();
+        console.error(e);
+        Toast.error('Failed to update leave');
+    }
+};
+
+window.approveRegistration = async (id, role) => {
+    try {
+        Loading.show();
+        await window.store.approveRegistration(id, role);
+        AdminRenderers.renderRegistrations();
+        AdminRenderers.renderStaff();
+        Loading.hide();
+        Toast.success('User approved');
+    } catch (e) {
+        Loading.hide();
+        Toast.error(e.message);
+    }
+};
+
+window.deleteRegistration = async (id) => {
+    if (!confirm('Reject and delete this registration?')) return;
+    try {
+        Loading.show();
+        await window.store.deleteRegistration(id);
+        AdminRenderers.renderRegistrations();
+        Loading.hide();
+        Toast.info('Registration rejected');
+    } catch (e) {
+        Loading.hide();
+        Toast.error(e.message);
+    }
+};
 
 // DOM Elements
 const views = {
@@ -136,9 +265,8 @@ function initAdminDashboard() {
 
     // Defer heavy chart/map
     setTimeout(() => {
-        ChartUtils.renderChart();
-        // If map tab is active (it's not by default, but check)
-        // MapUtils.renderMap(); 
+        ChartUtils.renderAdminCharts();
+        MapUtils.renderMiniMap(); // Initialize overview mini-map
     }, 100);
 
     AdminRenderers.renderDropdowns();
@@ -168,7 +296,11 @@ function initFieldDashboard() {
     FieldRenderers.renderFieldTasks(user.id);
     FieldRenderers.renderFieldLeaves();
     FieldRenderers.renderFieldProfile();
+
+    // Render Worker Charts
+    setTimeout(() => ChartUtils.renderWorkerCharts(user.id), 100);
 }
+
 
 // ========================================
 // GLOBAL ACTIONS (Exposed to Window)
@@ -327,38 +459,7 @@ window.editSite = (siteId) => {
     UI.openModal('site-modal');
 };
 
-window.approveLeave = (id) => {
-    window.store.updateLeaveStatus(id, 'approved');
-    Toast.success('Leave approved');
-    AdminRenderers.renderAdminLeaves();
-    AdminRenderers.updateAdminStats();
-};
 
-window.rejectLeave = (id) => {
-    window.store.updateLeaveStatus(id, 'rejected');
-    Toast.info('Leave rejected');
-    AdminRenderers.renderAdminLeaves();
-    AdminRenderers.updateAdminStats();
-};
-
-window.approveRegistration = async (id, role) => {
-    if (!confirm('Approve this user?')) return;
-    try {
-        await window.store.approveRegistration(id, role);
-        Toast.success('User Approved');
-        AdminRenderers.renderRegistrations();
-        AdminRenderers.renderStaff();
-    } catch (e) {
-        Toast.error('Error approving user');
-    }
-};
-
-window.deleteRegistration = async (id) => {
-    if (!confirm('Reject request?')) return;
-    await window.store.deleteRegistration(id);
-    AdminRenderers.renderRegistrations();
-    Toast.info('Request rejected');
-};
 
 window.completeTask = (id) => {
     window.store.completeTask(id);
@@ -481,9 +582,48 @@ function setupEventListeners() {
                 if (targetId === 'attendance') AdminRenderers.renderAttendanceLogs();
                 if (targetId === 'leave') AdminRenderers.renderAdminLeaves();
                 if (targetId === 'messages') ChatRenderers.renderAdminChat();
+                if (targetId === 'calendar') CalendarRenderer.render();
             }, 150);
         });
     });
+
+    // Programmatic tab switching function (for buttons)
+    window.switchAdminTab = (tabName) => {
+        // Update sidebar active state
+        document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+        const navLink = document.querySelector(`.nav-links a[href="#${tabName}"]`);
+        if (navLink) navLink.parentElement.classList.add('active');
+
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+            tab.classList.add('hidden');
+        });
+
+        // Show target tab
+        const targetTab = document.getElementById(`tab-${tabName}`);
+        if (targetTab) {
+            setTimeout(() => {
+                targetTab.classList.remove('hidden');
+                setTimeout(() => targetTab.classList.add('active'), 10);
+            }, 100);
+        }
+
+        // Trigger renderers
+        setTimeout(() => {
+            if (tabName === 'overview') { AdminRenderers.updateAdminStats(); ChartUtils.renderAdminCharts(); }
+            if (tabName === 'map') MapUtils.renderMap();
+            if (tabName === 'projects') AdminRenderers.renderProjects();
+            if (tabName === 'sites') AdminRenderers.renderSites();
+            if (tabName === 'staff') AdminRenderers.renderStaff();
+            if (tabName === 'tasks') AdminRenderers.renderAdminTasks();
+            if (tabName === 'reports') AdminRenderers.renderAdminReports();
+            if (tabName === 'attendance') AdminRenderers.renderAttendanceLogs();
+            if (tabName === 'leave') AdminRenderers.renderAdminLeaves();
+            if (tabName === 'messages') ChatRenderers.renderAdminChat();
+            if (tabName === 'calendar') CalendarRenderer.render();
+        }, 150);
+    };
 
     // Field Nav
     document.querySelectorAll('.mobile-nav a').forEach(link => {
@@ -508,8 +648,7 @@ function setupEventListeners() {
         });
     });
 
-    // Forms
-    setupForms();
+
 }
 
 function setupForms() {
@@ -557,17 +696,35 @@ function setupForms() {
     });
 
     // Worker
+    // Worker
     document.getElementById('worker-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         Loading.show();
         const fd = new FormData(e.target);
+
+        // Validation
+        const phone = fd.get('phone').trim();
+        const email = fd.get('email').trim();
+
+        if (!/^\d{10}$/.test(phone)) {
+            Toast.error('Phone number must be exactly 10 digits');
+            Loading.hide();
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            Toast.error('Invalid email address format');
+            Loading.hide();
+            return;
+        }
+
         const workerId = fd.get('workerId');
         try {
             if (workerId) {
                 await window.store.updateWorker(workerId, {
                     name: fd.get('name'),
-                    email: fd.get('email'),
-                    phone: fd.get('phone'),
+                    email: email,
+                    phone: phone,
                     role: fd.get('role'),
                     assignedSite: fd.get('assignedSite')
                 });
@@ -575,8 +732,8 @@ function setupForms() {
             } else {
                 await window.store.addWorker({
                     name: fd.get('name'),
-                    email: fd.get('email'),
-                    phone: fd.get('phone'),
+                    email: email,
+                    phone: phone,
                     password: fd.get('password'),
                     role: fd.get('role'),
                     assignedSite: fd.get('assignedSite')
@@ -592,6 +749,45 @@ function setupForms() {
         Loading.hide();
     });
 
+    // Registration (Public)
+    document.getElementById('registration-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        Loading.show();
+        const fd = new FormData(e.target);
+
+        // Validation
+        const phone = fd.get('phone').trim();
+        const email = fd.get('email').trim();
+
+        if (!/^\d{10}$/.test(phone)) {
+            Toast.error('Phone number must be exactly 10 digits');
+            Loading.hide();
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            Toast.error('Invalid email address format');
+            Loading.hide();
+            return;
+        }
+
+        try {
+            await window.store.registerVolunteer({
+                name: fd.get('name'),
+                email: email,
+                phone: phone,
+                skills: fd.get('skills')
+            });
+            UI.closeModal('registration-modal');
+            e.target.reset();
+            Toast.success('Registration submitted! We will contact you soon.');
+        } catch (err) {
+            console.error(err);
+            Toast.error('Registration failed');
+        }
+        Loading.hide();
+    });
+
     // Site
     document.getElementById('site-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -599,11 +795,18 @@ function setupForms() {
         const fd = new FormData(e.target);
         const editId = e.target.dataset.editId;
         try {
+            const radius = parseInt(fd.get('radius')) || 200;
+            const lat = parseFloat(fd.get('lat'));
+            const lng = parseFloat(fd.get('lng'));
+
+            if (radius <= 0) throw new Error("Radius must be positive");
+            if (isNaN(lat) || isNaN(lng)) throw new Error("Invalid coordinates selected");
+
             const data = {
                 name: fd.get('name'),
                 projectId: fd.get('projectId') || null,
-                radius: parseInt(fd.get('radius')) || 200,
-                coords: { lat: parseFloat(fd.get('lat')), lng: parseFloat(fd.get('lng')) }
+                radius: radius,
+                coords: { lat, lng }
             };
             if (editId) await window.store.updateSite(editId, data);
             else await window.store.addSite(data);
@@ -719,7 +922,8 @@ function setupForms() {
         await window.store.addLeaveRequest({
             userId: window.store.getCurrentUser().id,
             type: fd.get('type'),
-            date: fd.get('date'),
+            startDate: fd.get('startDate'),
+            endDate: fd.get('endDate'),
             reason: fd.get('reason')
         });
         Loading.hide();

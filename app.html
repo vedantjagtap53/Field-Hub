@@ -40,54 +40,84 @@
     </div>
 
     <div class="app-background">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
+        <!-- Background Blobs Removed -->
     </div>
 
     <!-- Floating Particles -->
-    <div class="floating-particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
+    <!-- Floating Particles Removed for cleaner UI -->
 
 
     <!-- Modal Helpers -->
     <div id="app">
         <!-- Auth View -->
-        <section id="auth-view" class="view hidden">
-            <div class="glass-panel auth-card">
-                <div class="logo-area">
-                    <i class="fa-solid fa-satellite-dish pulse"></i>
-                    <h1>FieldHub</h1>
-                    <p>Field Operations Platform</p>
-                </div>
-
-                <div class="role-selector">
-                    <button class="role-btn active" data-role="admin">
-                        <i class="fa-solid fa-user-tie"></i>
-                        <span>Manager</span>
-                    </button>
-                    <button class="role-btn" data-role="field">
-                        <i class="fa-solid fa-person-hiking"></i>
-                        <span>Field Staff</span>
-                    </button>
-                </div>
-
-                <form id="login-form">
-                    <div class="input-group">
-                        <i class="fa-solid fa-envelope"></i>
-                        <input type="email" placeholder="Email Address" required>
+        <!-- Auth View (Split Layout) -->
+        <section id="auth-view" class="view hidden split-layout">
+            <!-- Left Panel: Hero -->
+            <div class="hero-panel">
+                <div class="hero-content">
+                    <div class="hero-brand">
+                        <i class="fa-solid fa-satellite-dish pulse-slow"></i>
+                        <h1>FieldHub</h1>
                     </div>
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" placeholder="Password" required>
+                    <h2>Command Your Field Operations.</h2>
+                    <p>Real-time tracking, task management, and seamless communication for modern teams.</p>
+
+                    <div class="hero-stats">
+                        <div class="stat-pill">
+                            <i class="fa-solid fa-globe"></i>
+                            <span>Live Tracking</span>
+                        </div>
+                        <div class="stat-pill">
+                            <i class="fa-solid fa-bolt"></i>
+                            <span>Instant Sync</span>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary">
-                        Access Portal <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </form>
+                </div>
+                <div class="hero-bg-anim">
+                    <div class="orb orb-1"></div>
+                    <div class="orb orb-2"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Login Form -->
+            <div class="login-panel">
+                <div class="login-container">
+                    <div class="mobile-brand">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <h2>FieldHub</h2>
+                    </div>
+
+                    <div class="login-header text-center">
+                        <div class="login-icon-glow">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <h3>Welcome Back</h3>
+                        <p>Sign in to continue</p>
+                    </div>
+
+                    <!-- Role Selector Removed for Cleaner UI -->
+
+                    <form id="login-form">
+                        <div class="input-group floating-label">
+                            <i class="fa-solid fa-envelope"></i>
+                            <input type="email" id="login-email" placeholder=" " required>
+                            <label for="login-email">Email Address</label>
+                        </div>
+                        <div class="input-group floating-label">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="login-password" placeholder=" " required>
+                            <label for="login-password">Password</label>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-block btn-lg">
+                            Access Portal <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <p class="login-footer">
+                        Need an account? <a href="#" onclick="UI.openModal('registration-modal')">Join the team</a>
+                    </p>
+                </div>
             </div>
         </section>
 
@@ -102,14 +132,17 @@
                     <li class="active"><a href="#overview"><i class="fa-solid fa-chart-pie"></i> Overview</a></li>
                     <li><a href="#map"><i class="fa-solid fa-map-location-dot"></i> Live Map</a></li>
                     <li><a href="#projects"><i class="fa-solid fa-folder-tree"></i> Projects</a></li>
-                    <li><a href="#sites"><i class="fa-solid fa-building"></i> Sites</a></li>
+                    <li><a href="#sites"><i class="fa-solid fa-map-location-dot"></i> Sites</a></li>
+                    <li><a href="#registrations"><i class="fa-solid fa-user-plus"></i> Join Req.</a></li>
                     <li><a href="#staff"><i class="fa-solid fa-users"></i> Staff</a></li>
-                    <li><a href="#registrations"><i class="fa-solid fa-user-plus"></i> Approvals</a></li>
+
                     <li><a href="#tasks"><i class="fa-solid fa-list-check"></i> Tasks</a></li>
-                    <li><a href="#attendance"><i class="fa-solid fa-clock"></i> Attendance</a></li>
+                    <li><a href="#calendar"><i class="fa-solid fa-calendar-days"></i> Calendar</a></li>
+                    <li><a href="#attendance"><i class="fa-solid fa-clock"></i> Logs</a></li>
                     <li><a href="#reports"><i class="fa-solid fa-file-alt"></i> Reports</a></li>
                     <li><a href="#messages"><i class="fa-solid fa-comments"></i> Messages</a></li>
                     <li><a href="#leave"><i class="fa-solid fa-calendar-check"></i> Leave</a></li>
+                    <li><a href="#data"><i class="fa-solid fa-database"></i> Data</a></li>
                 </ul>
                 <div class="user-profile">
                     <img src="https://ui-avatars.com/api/?name=Admin+User&background=6366f1&color=fff" alt="Admin">
@@ -139,46 +172,133 @@
                 </header>
 
                 <div class="content-area">
-                    <!-- Overview Tab -->
+                    <!-- Overview Tab (BENTO GRID) -->
                     <div id="tab-overview" class="tab-content active">
-                        <div class="stats-grid">
-                            <div class="stat-card glass-panel">
-                                <div class="icon-box blue"><i class="fa-solid fa-users-viewfinder"></i></div>
-                                <div class="stat-info">
-                                    <h3>Active Field Staff</h3>
-                                    <p class="stat-value" id="stat-active-staff">0</p>
+                        <div class="bento-grid expanded">
+                            <!-- Hero Tile -->
+                            <div class="bento-tile hero span-4">
+                                <div class="hero-content">
+                                    <span class="eyebrow">Dashboard Overview</span>
+                                    <h1>Welcome back, <span id="admin-name">Admin</span> 👋</h1>
+                                    <p class="hero-subtitle">Your team is performing well today.</p>
+                                </div>
+                                <div class="hero-actions">
+                                    <button class="action-pill" onclick="openModal('task-modal')"><i
+                                            class="fa-solid fa-plus"></i> New Task</button>
+                                    <button class="action-pill" onclick="openModal('broadcast-modal')"><i
+                                            class="fa-solid fa-bullhorn"></i> Broadcast</button>
+                                    <button class="action-pill outline" onclick="switchAdminTab('staff')"><i
+                                            class="fa-solid fa-users"></i> View Staff</button>
                                 </div>
                             </div>
-                            <div class="stat-card glass-panel">
-                                <div class="icon-box green"><i class="fa-solid fa-check-double"></i></div>
-                                <div class="stat-info">
-                                    <h3>Tasks Completed</h3>
-                                    <p class="stat-value" id="stat-completed-tasks">0</p>
-                                </div>
-                            </div>
-                            <div class="stat-card glass-panel">
-                                <div class="icon-box orange"><i class="fa-solid fa-clipboard-question"></i></div>
-                                <div class="stat-info">
-                                    <h3>Pending Leaves</h3>
-                                    <p class="stat-value" id="stat-leave-reqs">0</p>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="dashboard-split">
-                            <div class="recent-activity glass-panel" style="flex:2;">
-                                <h3><i class="fa-solid fa-satellite-dish"></i> Recent Activity</h3>
+                            <!-- Stat Cards Row -->
+                            <div class="bento-tile stat-card blue">
+                                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="stat-active-staff">0</span>
+                                    <span class="stat-title">Active Staff</span>
+                                </div>
+                            </div>
+
+                            <div class="bento-tile stat-card green">
+                                <div class="stat-icon"><i class="fa-solid fa-check-double"></i></div>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="stat-completed-tasks">0</span>
+                                    <span class="stat-title">Tasks Done</span>
+                                </div>
+                            </div>
+
+                            <div class="bento-tile stat-card orange">
+                                <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="stat-leave-reqs">0</span>
+                                    <span class="stat-title">Leave Requests</span>
+                                </div>
+                            </div>
+
+                            <div class="bento-tile stat-card purple">
+                                <div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div>
+                                <div class="stat-content">
+                                    <span class="stat-value" id="stat-reports">0</span>
+                                    <span class="stat-title">Reports Filed</span>
+                                </div>
+                            </div>
+
+                            <!-- Live Map Preview -->
+                            <div class="bento-tile map-tile span-2 row-2">
+                                <div class="tile-header">
+                                    <h4><i class="fa-solid fa-earth-americas"></i> Live Operations</h4>
+                                    <button class="chip-btn" onclick="switchAdminTab('map')">Expand</button>
+                                </div>
+                                <div id="overview-map" class="mini-map-container"></div>
+                            </div>
+
+                            <!-- Activity Feed -->
+                            <div class="bento-tile activity-tile span-2 row-2">
+                                <div class="tile-header">
+                                    <h4><i class="fa-solid fa-bell"></i> Activity Feed</h4>
+                                    <span class="badge">Live</span>
+                                </div>
                                 <ul class="activity-list" id="activity-log">
-                                    <!-- Populated by JS -->
-                                    <li class="skeleton-item" style="height: 40px;"></li>
-                                    <li class="skeleton-item" style="height: 40px;"></li>
-                                    <li class="skeleton-item" style="height: 40px;"></li>
+                                    <li class="skeleton-item"></li>
+                                    <li class="skeleton-item"></li>
+                                    <li class="skeleton-item"></li>
+                                    <li class="skeleton-item"></li>
                                 </ul>
                             </div>
-                            <div class="chart-container glass-panel"
-                                style="flex:1; min-width:300px; height: 350px; position: relative;">
-                                <h3>Attendance Trends</h3>
-                                <canvas id="attendanceChart"></canvas>
+
+                            <!-- Weekly Engagement Chart (Larger) -->
+                            <div class="bento-tile chart-tile span-2">
+                                <div class="tile-header">
+                                    <h4><i class="fa-solid fa-chart-line"></i> Weekly Engagement</h4>
+                                    <button class="chip-btn" onclick="openModal('analytics-modal')"><i
+                                            class="fa-solid fa-expand"></i></button>
+                                </div>
+                                <div class="chart-container large"><canvas id="engagementChart"></canvas></div>
+                            </div>
+
+                            <!-- Task Distribution Chart -->
+                            <div class="bento-tile chart-tile">
+                                <div class="tile-header">
+                                    <h4><i class="fa-solid fa-chart-pie"></i> Task Breakdown</h4>
+                                </div>
+                                <div class="chart-container"><canvas id="taskDistChart"></canvas></div>
+                            </div>
+
+                            <!-- Attendance Rate -->
+                            <div class="bento-tile analytics-card">
+                                <div class="analytics-header">
+                                    <h4><i class="fa-solid fa-calendar-check"></i> Attendance</h4>
+                                </div>
+                                <div class="analytics-value">
+                                    <span class="big-num" id="stat-attendance">92%</span>
+                                    <span class="trend up"><i class="fa-solid fa-arrow-up"></i> +3%</span>
+                                </div>
+                            </div>
+
+                            <!-- Productivity Rate (New) -->
+                            <div class="bento-tile analytics-card">
+                                <div class="analytics-header">
+                                    <h4><i class="fa-solid fa-bolt"></i> Productivity</h4>
+                                </div>
+                                <div class="analytics-value">
+                                    <span class="big-num" id="stat-productivity">87%</span>
+                                    <span class="trend up"><i class="fa-solid fa-arrow-up"></i> +5%</span>
+                                </div>
+                            </div>
+
+                            <!-- Full Analytics Button -->
+                            <div class="bento-tile analytics-cta span-4">
+                                <div class="cta-content">
+                                    <i class="fa-solid fa-chart-simple"></i>
+                                    <div>
+                                        <h4>View Full Analytics</h4>
+                                        <p>See detailed reports and trends</p>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" onclick="openModal('analytics-modal')"><i
+                                        class="fa-solid fa-arrow-right"></i> Open Analytics</button>
                             </div>
                         </div>
                     </div>
@@ -259,6 +379,15 @@
                         </div>
                     </div>
 
+
+
+                    <!-- Calendar Tab -->
+                    <div id="tab-calendar" class="tab-content hidden" style="height: calc(100vh - 120px);">
+                        <div class="glass-panel" style="height:100%; padding:20px; overflow:hidden;">
+                            <div id="admin-calendar" style="height:100%;"></div>
+                        </div>
+                    </div>
+
                     <!-- Attendance Tab -->
                     <div id="tab-attendance" class="tab-content hidden">
                         <div class="glass-panel" style="padding: 20px;">
@@ -322,6 +451,71 @@
                     <!-- Messages Tab -->
                     <div id="tab-messages" class="tab-content hidden">
                         <div id="admin-chat-container" style="height: 100%;"></div>
+                    </div>
+
+                    <!-- Data Management Tab -->
+                    <div id="tab-data" class="tab-content hidden">
+                        <div class="glass-panel" style="padding: 24px;">
+                            <h3><i class="fa-solid fa-database"></i> Data Management</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                                Manage your database to stay within Spark Plan limits (1GB). Export backups and archive
+                                old data.
+                            </p>
+
+                            <!-- Backup Section -->
+                            <div class="data-section"
+                                style="margin-bottom: 32px; padding: 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
+                                <h4 style="margin-bottom: 12px;"><i class="fa-solid fa-download"></i> Full Backup</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                                    Download a complete snapshot of all your data as JSON.
+                                </p>
+                                <button class="btn-primary" onclick="window.exportFullBackup()">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i> Download Full Backup
+                                </button>
+                            </div>
+
+                            <!-- Archive Section -->
+                            <div class="data-section"
+                                style="margin-bottom: 32px; padding: 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
+                                <h4 style="margin-bottom: 12px;"><i class="fa-solid fa-box-archive"></i> Archive Old
+                                    Data</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                                    Export data older than a specified period. This does NOT delete data.
+                                </p>
+                                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                    <label style="font-size: 0.9rem;">Older than:</label>
+                                    <select id="archive-months" class="input-light" style="width: 120px;">
+                                        <option value="3">3 Months</option>
+                                        <option value="6" selected>6 Months</option>
+                                        <option value="12">12 Months</option>
+                                    </select>
+                                    <button class="btn-primary" onclick="window.previewArchive()">
+                                        <i class="fa-solid fa-eye"></i> Preview
+                                    </button>
+                                    <button class="btn-outline" onclick="window.exportArchive()">
+                                        <i class="fa-solid fa-file-export"></i> Export Only
+                                    </button>
+                                </div>
+                                <div id="archive-preview"
+                                    style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; display: none;">
+                                    <!-- Preview results -->
+                                </div>
+                            </div>
+
+                            <!-- Purge Section -->
+                            <div class="data-section"
+                                style="padding: 20px; background: rgba(239, 68, 68, 0.05); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                <h4 style="margin-bottom: 12px; color: #ef4444;"><i class="fa-solid fa-trash-can"></i>
+                                    Purge Old Data</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                                    <strong>⚠️ Danger Zone:</strong> This will permanently delete old data after
+                                    exporting a backup.
+                                </p>
+                                <button class="btn-danger" onclick="window.archiveAndPurge()">
+                                    <i class="fa-solid fa-trash"></i> Archive & Purge
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -396,237 +590,269 @@
                 </div>
 
 
-                <!-- Profile Tab -->
-                <div id="field-tab-profile" class="field-tab hidden">
-                    <div class="glass-panel" style="padding: 20px;">
-                        <h3 style="margin-bottom: 20px;">My Profile</h3>
-                        <form id="field-profile-form">
-                            <div style="text-align: center; margin-bottom: 20px;">
-                                <img id="profile-avatar-preview" src=""
-                                    style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 10px;">
-                                <p id="profile-email-display" style="color: var(--text-muted); font-size: 0.9rem;"></p>
-                            </div>
 
-                            <div class="input-group" style="margin-bottom: 12px;">
-                                <label
-                                    style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Full
-                                    Name</label>
-                                <input type="text" name="name" class="input-light" required>
-                            </div>
 
-                            <div class="input-group" style="margin-bottom: 12px;">
-                                <label
-                                    style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Phone
-                                    Number</label>
-                                <input type="tel" name="phone" class="input-light" required>
-                            </div>
+    </div>
 
-                            <div class="input-group" style="margin-top: 15px; margin-bottom: 12px;">
-                                <label
-                                    style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Skills
-                                    / Expertise</label>
-                                <input type="text" name="skills" class="input-light"
-                                    placeholder="e.g. First Aid, Driving, Surveying">
-                            </div>
-                    </div>
-
-                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">Save
-                        Changes</button>
-                    </form>
-
-                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <span>Dark Mode</span>
-                        <div class="theme-toggle" onclick="toggleTheme()"
-                            style="position:static; width:40px; height:40px;">
-                            <i class="theme-icon fa-solid fa-moon"></i>
-                        </div>
-                    </div>
-
-                    <button id="field-tab-logout" class="btn-outline"
-                        style="width: 100%; border-color: #ef4444; color: #ef4444;">
-                        <i class="fa-solid fa-right-from-bracket"></i> Logout
-                    </button>
+    <!-- Profile Tab -->
+    <div id="field-tab-profile" class="field-tab hidden">
+        <div class="glass-panel" style="padding: 20px;">
+            <h3 style="margin-bottom: 20px;">My Profile</h3>
+            <form id="field-profile-form">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img id="profile-avatar-preview" src=""
+                        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 10px;">
+                    <p id="profile-email-display" style="color: var(--text-muted); font-size: 0.9rem;"></p>
                 </div>
 
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label
+                        style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Full
+                        Name</label>
+                    <input type="text" name="name" class="input-light" required>
+                </div>
 
-            </main>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label
+                        style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Phone
+                        Number</label>
+                    <input type="tel" name="phone" class="input-light" required>
+                </div>
 
-            <nav class="mobile-nav glass-panel">
-                <a href="#home" class="active" data-target="field-tab-home"><i class="fa-solid fa-house"></i></a>
-                <a href="#messages" data-target="field-tab-messages"><i class="fa-solid fa-comments"></i></a>
-                <a href="#reports" data-target="field-tab-reports"><i class="fa-solid fa-camera"></i></a>
-                <a href="#leave" data-target="field-tab-leave"><i class="fa-solid fa-calendar-day"></i></a>
-                <a href="#profile" data-target="field-tab-profile"><i class="fa-solid fa-user-gear"></i></a>
-            </nav>
-        </section>
+                <div class="input-group" style="margin-top: 15px; margin-bottom: 12px;">
+                    <label
+                        style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Skills
+                        / Expertise</label>
+                    <input type="text" name="skills" class="input-light"
+                        placeholder="e.g. First Aid, Driving, Surveying">
+                </div>
+        </div>
 
-        <!-- Modals -->
-        <!-- Task Modal -->
-        <div id="task-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Assign New Task</h3>
-                <form id="create-task-form">
-                    <input type="text" name="title" placeholder="Task Title" required class="input-light">
-                    <input type="text" name="location" placeholder="Location Name" required class="input-light">
-                    <select name="assignedTo" id="staff-select" class="input-light">
-                        <!-- Filled by JS -->
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">Save
+            Changes</button>
+        </form>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <span>Dark Mode</span>
+            <div class="theme-toggle" onclick="toggleTheme()" style="position:static; width:40px; height:40px;">
+                <i class="theme-icon fa-solid fa-moon"></i>
+            </div>
+        </div>
+
+        <button id="field-tab-logout" class="btn-outline" style="width: 100%; border-color: #ef4444; color: #ef4444;">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+    </div>
+
+
+    </main>
+
+    <nav class="mobile-nav glass-panel">
+        <a href="#home" class="active" data-target="field-tab-home"><i class="fa-solid fa-house"></i></a>
+        <a href="#messages" data-target="field-tab-messages"><i class="fa-solid fa-comments"></i></a>
+        <a href="#reports" data-target="field-tab-reports"><i class="fa-solid fa-camera"></i></a>
+
+        <a href="#leave" data-target="field-tab-leave"><i class="fa-solid fa-calendar-day"></i></a>
+        <a href="#profile" data-target="field-tab-profile"><i class="fa-solid fa-user-gear"></i></a>
+    </nav>
+    </section>
+
+    <!-- Modals -->
+    <!-- Task Modal -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Assign New Task</h3>
+            <form id="create-task-form">
+                <input type="text" name="title" placeholder="Task Title" required class="input-light">
+                <input type="text" name="location" placeholder="Location Name" required class="input-light">
+                <select name="assignedTo" id="staff-select" class="input-light">
+                    <!-- Filled by JS -->
+                </select>
+                <div class="flex-gap">
+                    <select name="priority" class="input-light">
+                        <option value="low">Low Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="high">High Priority</option>
                     </select>
-                    <div class="flex-gap">
-                        <select name="priority" class="input-light">
-                            <option value="low">Low Priority</option>
-                            <option value="medium">Medium Priority</option>
-                            <option value="high">High Priority</option>
-                        </select>
-                        <input type="time" name="time" required class="input-light">
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('task-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Assign Task</button>
-                    </div>
-                </form>
-            </div>
+                    <input type="time" name="time" required class="input-light">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('task-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Assign Task</button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Leave Modal -->
-        <div id="leave-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Request Leave</h3>
-                <form id="leave-form">
-                    <select name="type" class="input-light">
-                        <option>Sick Leave</option>
-                        <option>Vacation</option>
-                        <option>Personal</option>
-                    </select>
-                    <input type="date" name="date" required class="input-light">
-                    <input type="text" name="reason" placeholder="Reason" required class="input-light">
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('leave-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Submit Request</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <!-- Leave Modal -->
+    <div id="leave-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Request Leave</h3>
+            <form id="leave-form">
+                <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Leave Type</label>
+                <select name="type" class="input-light" required>
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Personal">Personal Leave</option>
+                    <option value="Vacation">Vacation</option>
+                </select>
 
-        <!-- Report Modal -->
-        <div id="report-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Submit Field Report</h3>
-                <form id="report-form">
-                    <textarea name="content" placeholder="Describe the situation..." rows="4" class="input-light"
-                        required></textarea>
-                    <div class="upload-area" id="upload-area-display" style="margin-bottom: 12px;">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <p>Click to upload photo</p>
-                        <input type="file" id="report-photo" name="photo" accept="image/*" style="display: none;">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Start Date</label>
+                        <input type="date" name="startDate" class="input-light" required>
                     </div>
-                    <div id="photo-preview" style="display: none; margin-bottom: 12px;">
-                        <img id="preview-image" style="max-width: 100%; border-radius: 8px; max-height: 200px;">
-                        <button type="button" class="btn-text" onclick="removePhoto()" style="margin-top: 8px;">Remove
-                            Photo</button>
+                    <div style="flex:1;">
+                        <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">End Date</label>
+                        <input type="date" name="endDate" class="input-light" required>
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('report-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Submit Report</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
 
-        <!-- Project Modal -->
-        <div id="project-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Create New Project</h3>
-                <form id="project-form">
-                    <input type="text" name="name" placeholder="Project Name" required class="input-light">
-                    <textarea name="description" placeholder="Project Description" rows="3"
-                        class="input-light"></textarea>
-                    <input type="text" name="manager" placeholder="Project Manager" class="input-light">
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('project-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Create Project</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Reason / Notes</label>
+                <textarea name="reason" placeholder="Reason (Optional)" class="input-light" rows="3"></textarea>
 
-        <!-- Site Modal -->
-        <div id="site-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Add Workplace / Geofence</h3>
-                <form id="site-form">
-                    <input type="text" name="name" placeholder="Site Name" required class="input-light">
-                    <select name="projectId" id="site-project-select" class="input-light">
-                        <option value="">-- No Project (General) --</option>
-                        <!-- Populated by JS -->
-                    </select>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" name="lat" placeholder="Latitude" required class="input-light">
-                        <input type="text" name="lng" placeholder="Longitude" required class="input-light">
-                    </div>
-                    <input type="number" name="radius" placeholder="Radius (meters)" value="200" required
-                        class="input-light">
-                    <!-- Helper Text -->
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 20px;">
-                        <i class="fa-solid fa-info-circle"></i> Use Google Maps to find Lat/Lng. Workers must be within
-                        this radius to clock in.
-                    </p>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('site-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Save Site</button>
-                    </div>
-                </form>
-            </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('leave-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Request</button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Worker Modal -->
-        <div id="worker-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Add Field Worker</h3>
-                <form id="worker-form">
-                    <input type="hidden" name="workerId" value="">
-                    <input type="text" name="name" placeholder="Full Name" required class="input-light">
-                    <input type="email" name="email" placeholder="Email Address" required class="input-light">
-                    <input type="tel" name="phone" placeholder="Phone Number" required class="input-light">
-                    <select name="role" class="input-light mobile-compatible" required style="margin-bottom: 15px;">
-                        <option value="field">Field Staff</option>
-                        <option value="admin">Admin / Manager</option>
-                    </select>
-                    <input type="password" name="password" placeholder="Password (for login)" required
-                        class="input-light" minlength="6">
-                    <select name="assignedSite" id="site-select" class="input-light" required>
-                        <option value="">Select Workplace/Office</option>
-                        <!-- Filled by JS -->
-                    </select>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text" onclick="closeModal('worker-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Add Worker</button>
-                    </div>
-                </form>
-            </div>
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Submit Field Report</h3>
+            <form id="report-form">
+                <textarea name="content" placeholder="Describe the situation..." rows="4" class="input-light"
+                    required></textarea>
+                <div class="upload-area" id="upload-area-display" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Click to upload photo</p>
+                    <input type="file" id="report-photo" name="photo" accept="image/*" style="display: none;">
+                </div>
+                <div id="photo-preview" style="display: none; margin-bottom: 12px;">
+                    <img id="preview-image" style="max-width: 100%; border-radius: 8px; max-height: 200px;">
+                    <button type="button" class="btn-text" onclick="removePhoto()" style="margin-top: 8px;">Remove
+                        Photo</button>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('report-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Report</button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Registration Modal (Public) -->
-        <div id="registration-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Volunteer Registration</h3>
-                <form id="registration-form">
-                    <input type="text" name="name" placeholder="Full Name" required class="input-light">
-                    <input type="email" name="email" placeholder="Email Address" required class="input-light">
-                    <input type="tel" name="phone" placeholder="Phone Number" required class="input-light">
-                    <input type="text" name="skills" placeholder="Skills / Experience (Optional)" class="input-light">
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
-                        Your account will be reviewed by an administrator. You will be able to login once approved.
-                    </p>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-text"
-                            onclick="closeModal('registration-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Submit Registration</button>
-                    </div>
-                </form>
+    <!-- Project Modal -->
+    <div id="project-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Create New Project</h3>
+            <form id="project-form">
+                <input type="text" name="name" placeholder="Project Name" required class="input-light">
+                <textarea name="description" placeholder="Project Description" rows="3" class="input-light"></textarea>
+                <input type="text" name="manager" placeholder="Project Manager" class="input-light">
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('project-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Site Modal -->
+    <div id="site-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Add Workplace / Geofence</h3>
+            <form id="site-form">
+                <input type="text" name="name" placeholder="Site Name" required class="input-light">
+                <select name="projectId" id="site-project-select" class="input-light">
+                    <option value="">-- No Project (General) --</option>
+                    <!-- Populated by JS -->
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="lat" placeholder="Latitude" required class="input-light">
+                    <input type="text" name="lng" placeholder="Longitude" required class="input-light">
+                </div>
+                <input type="number" name="radius" placeholder="Radius (meters)" value="200" required
+                    class="input-light">
+                <!-- Helper Text -->
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-info-circle"></i> Use Google Maps to find Lat/Lng. Workers must be within
+                    this radius to clock in.
+                </p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('site-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Site</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Worker Modal -->
+    <div id="worker-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Add Field Worker</h3>
+            <form id="worker-form">
+                <input type="hidden" name="workerId" value="">
+                <input type="text" name="name" placeholder="Full Name" required class="input-light">
+                <input type="email" name="email" placeholder="Email Address" required class="input-light">
+
+                <select name="role" class="input-light mobile-compatible" required style="margin-bottom: 15px;">
+                    <option value="field">Field Staff</option>
+                    <option value="admin">Admin / Manager</option>
+                </select>
+                <input type="password" name="password" placeholder="Password (for login)" required class="input-light"
+                    minlength="6">
+                <select name="assignedSite" id="site-select" class="input-light" required>
+                    <option value="">Select Workplace/Office</option>
+                    <!-- Filled by JS -->
+                </select>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('worker-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Worker</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <!-- Dynamic Form Renderer (Field/Admin) -->
+    <div id="dynamic-form-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div style="text-align: right;">
+                <button class="btn-text" onclick="window.UI.closeModal('dynamic-form-modal')"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div id="dynamic-form-container">
+                <!-- Dynamic Form HTML -->
             </div>
         </div>
+    </div>
+
+    </div>
+
+    <!-- Registration Modal (Public) -->
+    <div id="registration-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h3>Volunteer Registration</h3>
+            <form id="registration-form">
+                <input type="text" name="name" placeholder="Full Name" required class="input-light">
+                <input type="email" name="email" placeholder="Email Address" required class="input-light">
+
+                <input type="text" name="skills" placeholder="Skills / Experience (Optional)" class="input-light">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
+                    Your account will be reviewed by an administrator. You will be able to login once approved.
+                </p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('registration-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Registration</button>
+                </div>
+            </form>
+        </div>
+    </div>
     </div>
 
     <!-- Broadcast Modal -->
@@ -642,6 +868,49 @@
                     <button type="submit" class="btn-primary" style="background:var(--primary);">Send Alert</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Analytics Modal (Fullscreen) -->
+    <div id="analytics-modal" class="modal fullscreen-modal hidden" style="display:none;">
+        <div class="modal-content analytics-panel">
+            <div class="analytics-modal-header">
+                <h2><i class="fa-solid fa-chart-simple"></i> Full Analytics Dashboard</h2>
+                <button class="close-btn" onclick="closeModal('analytics-modal')"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="analytics-grid">
+                <!-- Summary Stats -->
+                <div class="analytics-stats-row">
+                    <div class="analytics-stat"><span class="num" id="modal-active">0</span><span class="lbl">Active
+                            Staff</span></div>
+                    <div class="analytics-stat"><span class="num" id="modal-tasks">0</span><span class="lbl">Tasks
+                            Completed</span></div>
+                    <div class="analytics-stat"><span class="num" id="modal-attendance">92%</span><span
+                            class="lbl">Attendance</span></div>
+                    <div class="analytics-stat"><span class="num" id="modal-productivity">87%</span><span
+                            class="lbl">Productivity</span></div>
+                </div>
+                <!-- Charts -->
+                <div class="analytics-charts">
+                    <div class="analytics-chart-card">
+                        <h4>Weekly Engagement Overview</h4>
+                        <div class="chart-lg"><canvas id="modalEngagementChart"></canvas></div>
+                    </div>
+                    <div class="analytics-chart-card">
+                        <h4>Task Distribution</h4>
+                        <div class="chart-lg"><canvas id="modalTaskChart"></canvas></div>
+                    </div>
+                    <div class="analytics-chart-card">
+                        <h4>Monthly Attendance Trends</h4>
+                        <div class="chart-lg"><canvas id="modalAttendanceChart"></canvas></div>
+                    </div>
+                    <div class="analytics-chart-card">
+                        <h4>Project Completion Rate</h4>
+                        <div class="chart-lg"><canvas id="modalProjectChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -663,7 +932,8 @@
 
     <script src="js/store_v2.js"></script>
     <script src="js/features/export_utils.js"></script>
-    <script type="module" src="js/app_v2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script type="module" src="js/app_v2.js?v=final"></script>
 
     <!-- Failsafe Splash Removal -->
     <script>

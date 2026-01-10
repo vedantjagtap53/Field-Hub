@@ -47,6 +47,11 @@ export const UI = {
             modal.style.display = ''; // Clear inline display:none (FOUC fix)
             modal.classList.remove('hidden');
             setTimeout(() => modal.classList.add('show'), 10);
+
+            // Initialize analytics modal charts when opened
+            if (id === 'analytics-modal' && window.ChartUtils?.renderAnalyticsModalCharts) {
+                setTimeout(() => window.ChartUtils.renderAnalyticsModalCharts(), 100);
+            }
         }
     },
     closeModal: (id) => {

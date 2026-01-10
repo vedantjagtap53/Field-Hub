@@ -83,7 +83,104 @@ const ExportUtils = {
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.print();
+    },
+
+    /**
+     * Export entire database as JSON backup
+     */
+    exportFullDatabase: async () => {
+        const backup = {
+            exportedAt: new Date().toISOString(),
+            users: window.store.getUsers(),
+            projects: window.store.getProjects(),
+            sites: window.store.getSites(),
+            tasks: window.store.getTasks(),
+            leaveRequests: window.store.getLeaveRequests(),
+            reports: window.store.getReports ? window.store.getReports() : [],
+            attendanceLogs: window.store.getAttendanceLogs(null, 10000),
+            messages: window.store.getMessages ? window.store.getMessages() : [],
+            registrations: window.store.getRegistrations ? window.store.getRegistrations() : []
+        };
+        const date = new Date().toISOString().split('T')[0];
+        ExportUtils.exportJSON(backup, `FieldHub_Backup_${date}`);
+        return backup;
+    },
+
+    /**
+     * Get data older than specified months
+     * @param {number} monthsOld - Age threshold in months
+     */
+    getOldData: (monthsOld = 6) => {
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - monthsOld);
+        const cutoffISO = cutoff.toISOString();
+
+        const oldLogs = window.store.getAttendanceLogs(null, 10000).filter(l => l.timestamp < cutoffISO);
+        const oldReports = (window.store.getReports ? window.store.getReports() : []).filter(r => r.submittedAt < cutoffISO);
+        const oldTasks = window.store.getTasks().filter(t => t.status === 'completed' && t.createdAt < cutoffISO);
+        const oldLeaves = window.store.getLeaveRequests().filter(l => l.status !== 'pending' && l.createdAt < cutoffISO);
+
+        return {
+            cutoffDate: cutoffISO,
+            attendanceLogs: oldLogs,
+            reports: oldReports,
+            tasks: oldTasks,
+            leaveRequests: oldLeaves,
+            totalCount: oldLogs.length + oldReports.length + oldTasks.length + oldLeaves.length
+        };
+    },
+
+    /**
+     * Archive (export) and then purge old data
+     * @param {number} monthsOld - Age threshold
+     */
+    archiveAndPurge: async (monthsOld = 6) => {
+        const oldData = ExportUtils.getOldData(monthsOld);
+
+        if (oldData.totalCount === 0) {
+            return { success: false, message: 'No old data to archive.' };
+        }
+
+        // First export
+        const date = new Date().toISOString().split('T')[0];
+        ExportUtils.exportJSON(oldData, `FieldHub_Archive_Before_${date}`);
+
+        // Then delete
+        const db = window.db;
+        const batch = db.batch();
+        let deleteCount = 0;
+
+        // Note: Batch has a limit of 500 operations
+        // For large datasets, we'd need to chunk this
+        oldData.attendanceLogs.slice(0, 100).forEach(doc => {
+            batch.delete(db.collection('attendanceLogs').doc(doc.id));
+            deleteCount++;
+        });
+
+        oldData.reports.slice(0, 100).forEach(doc => {
+            batch.delete(db.collection('reports').doc(doc.id));
+            deleteCount++;
+        });
+
+        oldData.tasks.slice(0, 100).forEach(doc => {
+            batch.delete(db.collection('tasks').doc(doc.id));
+            deleteCount++;
+        });
+
+        oldData.leaveRequests.slice(0, 100).forEach(doc => {
+            batch.delete(db.collection('leaveRequests').doc(doc.id));
+            deleteCount++;
+        });
+
+        await batch.commit();
+
+        return {
+            success: true,
+            message: `Archived and purged ${deleteCount} records.`,
+            remaining: oldData.totalCount - deleteCount
+        };
     }
 };
 
 window.ExportUtils = ExportUtils;
+

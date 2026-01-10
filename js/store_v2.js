@@ -11,8 +11,8 @@ const state = {
     attendance: [],
     attendanceLogs: [],
     leaveRequests: [],
-    leaveRequests: [],
     reports: [],
+
     messages: [],
     currentUser: null,
     initialized: false
@@ -146,63 +146,61 @@ function startRealtimeListeners() {
     track(db.collection('users').onSnapshot(snap => {
         state.users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Users listener denied/error')));
 
     // 2. Projects
     track(db.collection('projects').onSnapshot(snap => {
         state.projects = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Projects listener denied/error')));
 
     // 3. Sites
     track(db.collection('sites').onSnapshot(snap => {
         state.sites = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Sites listener denied/error')));
 
     // 4. Tasks
     track(db.collection('tasks').orderBy('createdAt', 'desc').onSnapshot(snap => {
         state.tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Tasks listener denied/error')));
 
-    // 5. Leave Requests (Admin & Field needs this usually, but filter for security in rules)
+    // 5. Leave Requests
     track(db.collection('leaveRequests').onSnapshot(snap => {
         state.leaveRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Leaves listener denied/error')));
 
     // 6. Reports
     track(db.collection('reports').onSnapshot(snap => {
         state.reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Reports listener denied/error')));
 
     // 7. Attendance Logs
     track(db.collection('attendanceLogs').orderBy('timestamp', 'desc').limit(500).onSnapshot(snap => {
         state.attendanceLogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Attendance Logs listener denied/error')));
 
     // 8. Live Attendance Status
     track(db.collection('attendance').onSnapshot(snap => {
         state.attendance = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }));
+    }, e => console.log('Live Attendance listener denied/error')));
 
-    // 9. Messages (Last 100)
+    // 9. Messages
     track(db.collection('messages').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
         state.messages = snap.docs.map(d => ({ id: d.id, ...d.data() })).reverse();
         notify();
-    }));
+    }, e => console.log('Messages listener denied/error')));
 
-    // 10. Registrations (Admin Only - but try to listen, if permission denied, it will catch error)
-    // We remove the strict `if admin` check here because rules handle permissions, and sometimes `state.currentUser` isn't fully ready synchronously.
-    // Better to attempt and fail gracefully, or rely on rules.
+    // 10. Registrations
     track(db.collection('registrations').onSnapshot(snap => {
         state.registrations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         notify();
-    }, err => console.log('Registrations listener ignored (permission denied or not admin)')));
+    }, err => console.log('Registrations listener ignored')));
 }
 
 function stopRealtimeListeners() {
@@ -280,6 +278,17 @@ const store = {
         } else {
             return await window.db.collection('users').add(newUser);
         }
+    },
+
+    registerVolunteer: async (data) => {
+        return await window.db.collection('registrations').add({
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            skills: data.skills || '',
+            status: 'pending',
+            submittedAt: new Date().toISOString()
+        });
     },
 
     updateWorker: async (id, data) => {
@@ -418,7 +427,7 @@ const store = {
         return await window.db.collection('leaveRequests').add({
             ...req,
             userName: state.currentUser ? state.currentUser.name : 'Unknown',
-            userAvatar: state.currentUser ? state.currentUser.avatar : null,
+            userAvatar: (state.currentUser && state.currentUser.avatar) ? state.currentUser.avatar : null,
             status: 'pending',
             createdAt: new Date().toISOString()
         });
@@ -435,6 +444,8 @@ const store = {
     rejectLeave: async (id) => {
         return await store.updateLeaveRequest(id, 'rejected');
     },
+
+
 
     getReports: () => state.reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
 
@@ -574,10 +585,28 @@ const store = {
     },
 
     getStats: () => {
+        const totalStaff = state.users.filter(u => u.role === 'field').length;
+        const activeStaff = state.attendance.filter(s => s.status === 'in').length;
+        const completedTasks = state.tasks.filter(t => t.status === 'completed').length;
+        const totalTasks = state.tasks.length;
+        const pendingLeaves = state.leaveRequests.filter(l => l.status === 'pending').length;
+        const totalReports = state.reports ? state.reports.length : 0;
+
+        // Calculate attendance rate (% of staff currently clocked in)
+        const attendanceRate = totalStaff > 0 ? Math.round((activeStaff / totalStaff) * 100) : 0;
+
+        // Calculate productivity (completed tasks / total tasks)
+        const productivityRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
         return {
-            activeStaff: state.attendance.filter(s => s.status === 'in').length,
-            completedTasks: state.tasks.filter(t => t.status === 'completed').length,
-            pendingLeaves: state.leaveRequests.filter(l => l.status === 'pending').length
+            activeStaff,
+            completedTasks,
+            pendingLeaves,
+            totalReports,
+            attendanceRate,
+            productivityRate,
+            totalStaff,
+            totalTasks
         };
     },
 

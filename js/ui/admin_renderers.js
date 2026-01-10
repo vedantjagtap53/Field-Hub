@@ -44,9 +44,26 @@ export const AdminRenderers = {
             }
         };
 
+        // Main dashboard stats
         update('stat-active-staff', stats.activeStaff);
         update('stat-completed-tasks', stats.completedTasks);
         update('stat-leave-reqs', stats.pendingLeaves);
+        update('stat-reports', stats.totalReports);
+        update('stat-attendance', stats.attendanceRate + '%');
+        update('stat-productivity', stats.productivityRate + '%');
+
+        // Update admin name in hero tile
+        const user = window.store.getCurrentUser();
+        if (user) {
+            const adminNameEl = document.getElementById('admin-name');
+            if (adminNameEl) adminNameEl.innerText = user.name || 'Admin';
+        }
+
+        // Sync modal stats
+        update('modal-active', stats.activeStaff);
+        update('modal-tasks', stats.completedTasks);
+        update('modal-attendance', stats.attendanceRate + '%');
+        update('modal-productivity', stats.productivityRate + '%');
     },
 
     updateUserProfileUI: () => {
@@ -102,7 +119,7 @@ export const AdminRenderers = {
         grid.innerHTML = workers.map(w => `
             <div class="glass-panel" style="padding:18px;">
                 <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                    <img src="${w.avatar}" style="width:48px; height:48px; border-radius:50%; border:2px solid var(--border);">
+                    <img src="${(w.avatar && w.avatar !== 'undefined') ? w.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(w.name)}" style="width:48px; height:48px; border-radius:50%; border:2px solid var(--border);">
                     <div style="flex:1;">
                         <h4 style="margin:0; font-size:1rem;">${w.name}</h4>
                         <p style="margin:2px 0 0; font-size:0.8rem; color:var(--text-muted);">${w.email}</p>
@@ -239,7 +256,9 @@ export const AdminRenderers = {
                     <h4 style="margin:0; font-size:1rem;">${r.type} <span style="font-size:0.85rem; color:var(--text-muted); font-weight:400;">by ${displayName}</span></h4>
                     <span style="font-size:0.75rem; padding:3px 8px; border-radius:4px; background: ${r.status === 'approved' ? 'rgba(59,130,246,0.1)' : (r.status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)')}; color:${r.status === 'approved' ? 'var(--primary)' : (r.status === 'rejected' ? '#ef4444' : '#f59e0b')}; border:1px solid; text-transform:uppercase; font-weight:600;">${r.status}</span>
                 </div>
-                <p style="margin:6px 0; color:var(--text-secondary); font-size:0.9rem;">${r.date} • ${r.reason}</p>
+                <p style="margin:6px 0; color:var(--text-secondary); font-size:0.9rem;">
+                    ${(r.startDate && r.endDate) ? `${r.startDate} to ${r.endDate}` : (r.date || 'No Date')} • ${r.reason}
+                </p>
                 ${r.status === 'pending' ? `
                 <div style="margin-top:10px; display:flex; gap:8px;">
                     <button class="btn-primary" style="padding:8px 16px; font-size:0.85rem; flex:1;" onclick="window.approveLeave('${r.id}')">Approve</button>
