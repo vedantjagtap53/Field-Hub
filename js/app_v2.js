@@ -149,6 +149,25 @@ window.deleteRegistration = async (id) => {
     }
 };
 
+window.sendBroadcast = async (event) => {
+    event.preventDefault();
+    const input = document.getElementById('broadcast-input');
+    const content = input.value.trim();
+    if (!content) return;
+
+    Loading.show();
+    try {
+        await window.store.sendMessage('all', content);
+        Toast.success('Broadcast sent');
+        UI.closeModal('broadcast-modal');
+        input.value = '';
+    } catch (e) {
+        console.error(e);
+        Toast.error('Failed to send broadcast');
+    }
+    Loading.hide();
+};
+
 // DOM Elements
 const views = {
     landing: document.getElementById('landing-page'),
@@ -164,6 +183,7 @@ const views = {
 document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     setupEventListeners();
+    setupForms(); // Initialize form handlers
     UI.updateDate();
 
     // Initialize Store
@@ -541,7 +561,7 @@ function setupEventListeners() {
     }
 
     // Logout
-    document.querySelectorAll('#logout-btn, #field-logout').forEach(btn => {
+    document.querySelectorAll('#logout-btn, #field-logout, #field-tab-logout').forEach(btn => {
         btn.addEventListener('click', () => {
             window.store.logout();
             Toast.info('Logged out');
@@ -550,10 +570,35 @@ function setupEventListeners() {
     });
 
     // Admin Nav
+    let dataTabUnlocked = false; // Session-based unlock flag
+
     document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', (e) => {
+        link.addEventListener('click', async (e) => {
             e.preventDefault();
             const targetId = link.getAttribute('href').substring(1);
+
+            // SECURITY: Data tab requires password re-authentication
+            if (targetId === 'data' && !dataTabUnlocked) {
+                const password = prompt('🔐 Security Check\n\nThis section contains sensitive operations.\nPlease re-enter your password to continue:');
+                if (!password) {
+                    Toast.info('Access cancelled');
+                    return;
+                }
+
+                Loading.show();
+                try {
+                    const user = firebase.auth().currentUser;
+                    const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+                    await user.reauthenticateWithCredential(credential);
+                    dataTabUnlocked = true; // Unlock for this session
+                    Toast.success('Access granted');
+                } catch (err) {
+                    Loading.hide();
+                    Toast.error('Incorrect password');
+                    return;
+                }
+                Loading.hide();
+            }
 
             document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
             link.parentElement.classList.add('active');

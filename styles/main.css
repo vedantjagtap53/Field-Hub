@@ -7,13 +7,9 @@
 :root {
     /* Brand Colors - Sharper, more corporate blue */
     --primary: #2563EB;
-    /* Blue 600 */
     --primary-light: #3B82F6;
-    /* Blue 500 */
     --primary-dark: #1D4ED8;
-    /* Blue 700 */
     --accent: #6366F1;
-    /* Indigo 500 */
 
     /* Semantic Colors */
     --success: #10B981;
@@ -21,31 +17,33 @@
     --error: #EF4444;
     --info: #3B82F6;
 
-    /* Neutrals (Slate Palette for that premium feel) */
-    --bg-dark: #F1F5F9;
-    /* Slate 100 - Main Background */
-    --bg-darker: #E2E8F0;
-    /* Slate 200 - Inputs/Borders */
-    --bg-card: rgba(255, 255, 255, 0.95);
-    /* High opacity for cleaner look */
-    --bg-hover: #F8FAFC;
+    /* Neutrals (Darker borders for contrast on Light Mode) */
+    --bg-dark: #F8FAFC;
     /* Slate 50 */
+    --bg-darker: #E2E8F0;
+    --bg-card: #FFFFFF;
+    /* Pure white for cards */
+    --bg-hover: #F1F5F9;
 
-    --text-primary: #0F172A;
-    /* Slate 900 */
-    --text-secondary: #475569;
-    /* Slate 600 */
-    --text-muted: #94A3B8;
-    /* Slate 400 */
+    /* Text - Increased contrast */
+    --text-primary: #020617;
+    /* Darker than slate-900 */
+    --text-secondary: #334155;
+    /* Darker than slate-600 */
+    --text-muted: #64748B;
 
+    /* Borders - Significant darkening for visibility */
     --border: #CBD5E1;
     /* Slate 300 */
     --border-light: #E2E8F0;
-    /* Slate 200 */
 
-    /* Shadows - Diffuse and layered */
+    /* Compact Sizing Factors */
+    --section-padding: 24px;
+    --card-padding: 20px;
+
+    /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -827,16 +825,24 @@ body {
     width: 280px;
     height: calc(100vh - 32px);
     margin: 16px 0 16px 16px;
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+    /* Light Mode: Light background */
+    background: var(--bg-card);
     backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border);
     border-radius: 24px;
     display: flex;
     flex-direction: column;
     position: relative;
     z-index: 100;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-lg);
     transition: all 0.3s ease;
+}
+
+/* Dark Mode: Dark gradient for sidebar */
+[data-theme="dark"] .sidebar {
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .nav-brand {
@@ -1070,7 +1076,7 @@ body {
 }
 
 .content-area {
-    padding: 32px;
+    padding: var(--section-padding);
 }
 
 /* ========================================
@@ -1080,16 +1086,20 @@ body {
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 12px;
+    /* Compact gap */
 }
 
 .bento-tile {
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 24px;
-    border: 1px solid #E5E7EB;
+    background: var(--bg-card);
+    border-radius: 20px;
+    /* Slightly tighter radius */
+    padding: var(--card-padding);
+    border: 1px solid var(--border);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     animation: tileEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    /* Improved Light Mode Shadow */
+    box-shadow: var(--shadow-sm);
 }
 
 .bento-tile:nth-child(1) {
@@ -1193,7 +1203,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 40px;
+    padding: 32px;
+    /* Reduced from 40px */
     border: none;
 }
 
@@ -1206,9 +1217,10 @@ body {
 }
 
 .hero h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    /* Reduced from 2rem */
     font-weight: 700;
-    margin: 8px 0;
+    margin: 4px 0;
     line-height: 1.2;
 }
 
@@ -1218,7 +1230,7 @@ body {
 
 .hero-subtitle {
     color: #94A3B8;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     margin: 0;
 }
 
@@ -1232,9 +1244,10 @@ body {
     background: var(--primary);
     color: white;
     border: none;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-size: 0.9rem;
+    padding: 10px 16px;
+    /* Compact */
+    border-radius: 10px;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -1264,18 +1277,20 @@ body {
 .stat-card {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 20px 24px;
+    gap: 14px;
+    padding: 16px 20px;
+    /* Compact */
 }
 
 .stat-card .stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 42px;
+    /* Reduced from 52px */
+    height: 42px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: white;
 }
 
@@ -1301,17 +1316,19 @@ body {
 }
 
 .stat-card .stat-value {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
+    /* Reduced from 1.8rem */
     font-weight: 800;
     color: var(--text-primary);
     line-height: 1;
 }
 
 .stat-card .stat-title {
-    font-size: 0.85rem;
-    color: #6B7280;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    /* Better contrast var */
     font-weight: 500;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 /* --- ANALYTICS CARD --- */
@@ -1319,7 +1336,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 24px;
+    padding: var(--card-padding);
 }
 
 .analytics-card .analytics-header h4 {
@@ -3080,6 +3097,37 @@ body {
 
     .stats-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* Bento Grid Mobile Fix */
+    .bento-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .bento-tile.span-4,
+    .bento-tile.span-3,
+    .bento-tile.span-2 {
+        grid-column: span 1;
+    }
+
+    .bento-tile.row-2 {
+        grid-row: span 1;
+    }
+
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .hero-actions {
+        width: 100%;
+        margin-top: 16px;
+    }
+
+    .stat-card {
+        padding: 16px;
     }
 }
 

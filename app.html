@@ -458,8 +458,8 @@
                         <div class="glass-panel" style="padding: 24px;">
                             <h3><i class="fa-solid fa-database"></i> Data Management</h3>
                             <p style="color: var(--text-secondary); margin-bottom: 24px;">
-                                Manage your database to stay within Spark Plan limits (1GB). Export backups and archive
-                                old data.
+                                Manage your database to stay within the limits (1GB). Export backups and archive old
+                                data.
                             </p>
 
                             <!-- Backup Section -->
@@ -577,7 +577,7 @@
                     <!-- Filled by JS -->
                 </div>
 
-                <!-- Reports Tab (New) -->
+                <!-- Reports Tab -->
                 <div id="field-tab-reports" class="field-tab hidden" style="padding: 20px;">
                     <h3>My Reports</h3>
                     <button class="btn-primary" onclick="openModal('report-modal')"
@@ -589,248 +589,245 @@
                     </div>
                 </div>
 
+                <!-- Profile Tab -->
+                <div id="field-tab-profile" class="field-tab hidden" style="padding: 20px;">
+                    <div class="glass-panel" style="padding: 20px;">
+                        <h3 style="margin-bottom: 20px;">My Profile</h3>
+                        <form id="field-profile-form">
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <img id="profile-avatar-preview" src=""
+                                    style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 10px;">
+                                <p id="profile-email-display" style="color: var(--text-muted); font-size: 0.9rem;"></p>
+                            </div>
 
+                            <div class="input-group" style="margin-bottom: 12px;">
+                                <label
+                                    style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Full
+                                    Name</label>
+                                <input type="text" name="name" class="input-light" required>
+                            </div>
 
+                            <div class="input-group" style="margin-bottom: 12px;">
+                                <label
+                                    style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Phone
+                                    Number</label>
+                                <input type="tel" name="phone" class="input-light" required>
+                            </div>
 
-    </div>
+                            <div class="input-group" style="margin-top: 15px; margin-bottom: 12px;">
+                                <label
+                                    style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Skills
+                                    / Expertise</label>
+                                <input type="text" name="skills" class="input-light"
+                                    placeholder="e.g. First Aid, Driving, Surveying">
+                            </div>
 
-    <!-- Profile Tab -->
-    <div id="field-tab-profile" class="field-tab hidden">
-        <div class="glass-panel" style="padding: 20px;">
-            <h3 style="margin-bottom: 20px;">My Profile</h3>
-            <form id="field-profile-form">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <img id="profile-avatar-preview" src=""
-                        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 10px;">
-                    <p id="profile-email-display" style="color: var(--text-muted); font-size: 0.9rem;"></p>
+                            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">Save
+                                Changes</button>
+                        </form>
+
+                        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                            <span>Dark Mode</span>
+                            <div class="theme-toggle" onclick="toggleTheme()"
+                                style="position:static; width:40px; height:40px;">
+                                <i class="theme-icon fa-solid fa-moon"></i>
+                            </div>
+                        </div>
+
+                        <button id="field-tab-logout" class="btn-outline"
+                            style="width: 100%; border-color: #ef4444; color: #ef4444;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
+                    </div>
                 </div>
 
-                <div class="input-group" style="margin-bottom: 12px;">
-                    <label
-                        style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Full
-                        Name</label>
-                    <input type="text" name="name" class="input-light" required>
-                </div>
+            </main>
 
-                <div class="input-group" style="margin-bottom: 12px;">
-                    <label
-                        style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Phone
-                        Number</label>
-                    <input type="tel" name="phone" class="input-light" required>
-                </div>
+            <nav class="mobile-nav glass-panel">
+                <a href="#home" class="active" data-target="field-tab-home"><i class="fa-solid fa-house"></i></a>
+                <a href="#messages" data-target="field-tab-messages"><i class="fa-solid fa-comments"></i></a>
+                <a href="#reports" data-target="field-tab-reports"><i class="fa-solid fa-camera"></i></a>
+                <a href="#leave" data-target="field-tab-leave"><i class="fa-solid fa-calendar-day"></i></a>
+                <a href="#profile" data-target="field-tab-profile"><i class="fa-solid fa-user-gear"></i></a>
+            </nav>
+        </section>
 
-                <div class="input-group" style="margin-top: 15px; margin-bottom: 12px;">
-                    <label
-                        style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-secondary);">Skills
-                        / Expertise</label>
-                    <input type="text" name="skills" class="input-light"
-                        placeholder="e.g. First Aid, Driving, Surveying">
-                </div>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">Save
-            Changes</button>
-        </form>
-
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <span>Dark Mode</span>
-            <div class="theme-toggle" onclick="toggleTheme()" style="position:static; width:40px; height:40px;">
-                <i class="theme-icon fa-solid fa-moon"></i>
-            </div>
-        </div>
-
-        <button id="field-tab-logout" class="btn-outline" style="width: 100%; border-color: #ef4444; color: #ef4444;">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </button>
-    </div>
-
-
-    </main>
-
-    <nav class="mobile-nav glass-panel">
-        <a href="#home" class="active" data-target="field-tab-home"><i class="fa-solid fa-house"></i></a>
-        <a href="#messages" data-target="field-tab-messages"><i class="fa-solid fa-comments"></i></a>
-        <a href="#reports" data-target="field-tab-reports"><i class="fa-solid fa-camera"></i></a>
-
-        <a href="#leave" data-target="field-tab-leave"><i class="fa-solid fa-calendar-day"></i></a>
-        <a href="#profile" data-target="field-tab-profile"><i class="fa-solid fa-user-gear"></i></a>
-    </nav>
-    </section>
-
-    <!-- Modals -->
-    <!-- Task Modal -->
-    <div id="task-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <h3>Assign New Task</h3>
-            <form id="create-task-form">
-                <input type="text" name="title" placeholder="Task Title" required class="input-light">
-                <input type="text" name="location" placeholder="Location Name" required class="input-light">
-                <select name="assignedTo" id="staff-select" class="input-light">
-                    <!-- Filled by JS -->
-                </select>
-                <div class="flex-gap">
-                    <select name="priority" class="input-light">
-                        <option value="low">Low Priority</option>
-                        <option value="medium">Medium Priority</option>
-                        <option value="high">High Priority</option>
+        <!-- Modals -->
+        <!-- Task Modal -->
+        <div id="task-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Assign New Task</h3>
+                <form id="create-task-form">
+                    <input type="text" name="title" placeholder="Task Title" required class="input-light">
+                    <input type="text" name="location" placeholder="Location Name" required class="input-light">
+                    <select name="assignedTo" id="staff-select" class="input-light">
+                        <!-- Filled by JS -->
                     </select>
-                    <input type="time" name="time" required class="input-light">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-text" onclick="closeModal('task-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Assign Task</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Leave Modal -->
-    <div id="leave-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <h3>Request Leave</h3>
-            <form id="leave-form">
-                <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Leave Type</label>
-                <select name="type" class="input-light" required>
-                    <option value="Sick Leave">Sick Leave</option>
-                    <option value="Personal">Personal Leave</option>
-                    <option value="Vacation">Vacation</option>
-                </select>
-
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex:1;">
-                        <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Start Date</label>
-                        <input type="date" name="startDate" class="input-light" required>
+                    <div class="flex-gap">
+                        <select name="priority" class="input-light">
+                            <option value="low">Low Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="high">High Priority</option>
+                        </select>
+                        <input type="time" name="time" required class="input-light">
                     </div>
-                    <div style="flex:1;">
-                        <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">End Date</label>
-                        <input type="date" name="endDate" class="input-light" required>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('task-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Assign Task</button>
                     </div>
-                </div>
-
-                <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Reason / Notes</label>
-                <textarea name="reason" placeholder="Reason (Optional)" class="input-light" rows="3"></textarea>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn-text" onclick="closeModal('leave-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Submit Request</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Report Modal -->
-    <div id="report-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <h3>Submit Field Report</h3>
-            <form id="report-form">
-                <textarea name="content" placeholder="Describe the situation..." rows="4" class="input-light"
-                    required></textarea>
-                <div class="upload-area" id="upload-area-display" style="margin-bottom: 12px;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <p>Click to upload photo</p>
-                    <input type="file" id="report-photo" name="photo" accept="image/*" style="display: none;">
-                </div>
-                <div id="photo-preview" style="display: none; margin-bottom: 12px;">
-                    <img id="preview-image" style="max-width: 100%; border-radius: 8px; max-height: 200px;">
-                    <button type="button" class="btn-text" onclick="removePhoto()" style="margin-top: 8px;">Remove
-                        Photo</button>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-text" onclick="closeModal('report-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Submit Report</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Project Modal -->
-    <div id="project-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <h3>Create New Project</h3>
-            <form id="project-form">
-                <input type="text" name="name" placeholder="Project Name" required class="input-light">
-                <textarea name="description" placeholder="Project Description" rows="3" class="input-light"></textarea>
-                <input type="text" name="manager" placeholder="Project Manager" class="input-light">
-                <div class="modal-actions">
-                    <button type="button" class="btn-text" onclick="closeModal('project-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Create Project</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Site Modal -->
-    <div id="site-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <h3>Add Workplace / Geofence</h3>
-            <form id="site-form">
-                <input type="text" name="name" placeholder="Site Name" required class="input-light">
-                <select name="projectId" id="site-project-select" class="input-light">
-                    <option value="">-- No Project (General) --</option>
-                    <!-- Populated by JS -->
-                </select>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" name="lat" placeholder="Latitude" required class="input-light">
-                    <input type="text" name="lng" placeholder="Longitude" required class="input-light">
-                </div>
-                <input type="number" name="radius" placeholder="Radius (meters)" value="200" required
-                    class="input-light">
-                <!-- Helper Text -->
-                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 20px;">
-                    <i class="fa-solid fa-info-circle"></i> Use Google Maps to find Lat/Lng. Workers must be within
-                    this radius to clock in.
-                </p>
-                <div class="modal-actions">
-                    <button type="button" class="btn-text" onclick="closeModal('site-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Site</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Worker Modal -->
-    <div id="worker-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <h3>Add Field Worker</h3>
-            <form id="worker-form">
-                <input type="hidden" name="workerId" value="">
-                <input type="text" name="name" placeholder="Full Name" required class="input-light">
-                <input type="email" name="email" placeholder="Email Address" required class="input-light">
-
-                <select name="role" class="input-light mobile-compatible" required style="margin-bottom: 15px;">
-                    <option value="field">Field Staff</option>
-                    <option value="admin">Admin / Manager</option>
-                </select>
-                <input type="password" name="password" placeholder="Password (for login)" required class="input-light"
-                    minlength="6">
-                <select name="assignedSite" id="site-select" class="input-light" required>
-                    <option value="">Select Workplace/Office</option>
-                    <!-- Filled by JS -->
-                </select>
-                <div class="modal-actions">
-                    <button type="button" class="btn-text" onclick="closeModal('worker-modal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Worker</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-
-    <!-- Dynamic Form Renderer (Field/Admin) -->
-    <div id="dynamic-form-modal" class="modal hidden">
-        <div class="modal-content glass-panel">
-            <div style="text-align: right;">
-                <button class="btn-text" onclick="window.UI.closeModal('dynamic-form-modal')"><i
-                        class="fa-solid fa-times"></i></button>
-            </div>
-            <div id="dynamic-form-container">
-                <!-- Dynamic Form HTML -->
+                </form>
             </div>
         </div>
-    </div>
+
+        <!-- Leave Modal -->
+        <div id="leave-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Request Leave</h3>
+                <form id="leave-form">
+                    <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Leave Type</label>
+                    <select name="type" class="input-light" required>
+                        <option value="Sick Leave">Sick Leave</option>
+                        <option value="Personal">Personal Leave</option>
+                        <option value="Vacation">Vacation</option>
+                    </select>
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex:1;">
+                            <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Start Date</label>
+                            <input type="date" name="startDate" class="input-light" required>
+                        </div>
+                        <div style="flex:1;">
+                            <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">End Date</label>
+                            <input type="date" name="endDate" class="input-light" required>
+                        </div>
+                    </div>
+
+                    <label style="display:block; margin:10px 0 5px; font-size:0.9rem;">Reason / Notes</label>
+                    <textarea name="reason" placeholder="Reason (Optional)" class="input-light" rows="3"></textarea>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('leave-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Report Modal -->
+        <div id="report-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Submit Field Report</h3>
+                <form id="report-form">
+                    <textarea name="content" placeholder="Describe the situation..." rows="4" class="input-light"
+                        required></textarea>
+                    <div class="upload-area" id="upload-area-display" style="margin-bottom: 12px;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Click to upload photo</p>
+                        <input type="file" id="report-photo" name="photo" accept="image/*" style="display: none;">
+                    </div>
+                    <div id="photo-preview" style="display: none; margin-bottom: 12px;">
+                        <img id="preview-image" style="max-width: 100%; border-radius: 8px; max-height: 200px;">
+                        <button type="button" class="btn-text" onclick="removePhoto()" style="margin-top: 8px;">Remove
+                            Photo</button>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('report-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Submit Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Project Modal -->
+        <div id="project-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Create New Project</h3>
+                <form id="project-form">
+                    <input type="text" name="name" placeholder="Project Name" required class="input-light">
+                    <textarea name="description" placeholder="Project Description" rows="3"
+                        class="input-light"></textarea>
+                    <input type="text" name="manager" placeholder="Project Manager" class="input-light">
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('project-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Site Modal -->
+        <div id="site-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Add Workplace / Geofence</h3>
+                <form id="site-form">
+                    <input type="text" name="name" placeholder="Site Name" required class="input-light">
+                    <select name="projectId" id="site-project-select" class="input-light">
+                        <option value="">-- No Project (General) --</option>
+                        <!-- Populated by JS -->
+                    </select>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="lat" placeholder="Latitude" required class="input-light">
+                        <input type="text" name="lng" placeholder="Longitude" required class="input-light">
+                    </div>
+                    <input type="number" name="radius" placeholder="Radius (meters)" value="200" required
+                        class="input-light">
+                    <!-- Helper Text -->
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 20px;">
+                        <i class="fa-solid fa-info-circle"></i> Use Google Maps to find Lat/Lng. Workers must be within
+                        this radius to clock in.
+                    </p>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('site-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Site</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Worker Modal -->
+        <div id="worker-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h3>Add Field Worker</h3>
+                <form id="worker-form">
+                    <input type="hidden" name="workerId" value="">
+                    <input type="text" name="name" placeholder="Full Name" required class="input-light">
+                    <input type="email" name="email" placeholder="Email Address" required class="input-light">
+
+                    <select name="role" class="input-light mobile-compatible" required style="margin-bottom: 15px;">
+                        <option value="field">Field Staff</option>
+                        <option value="admin">Admin / Manager</option>
+                    </select>
+                    <input type="password" name="password" placeholder="Password (for login)" required
+                        class="input-light" minlength="6">
+                    <select name="assignedSite" id="site-select" class="input-light" required>
+                        <option value="">Select Workplace/Office</option>
+                        <!-- Filled by JS -->
+                    </select>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-text" onclick="closeModal('worker-modal')">Cancel</button>
+                        <button type="submit" class="btn-primary">Add Worker</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+
+        <!-- Dynamic Form Renderer (Field/Admin) -->
+        <div id="dynamic-form-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <div style="text-align: right;">
+                    <button class="btn-text" onclick="window.UI.closeModal('dynamic-form-modal')"><i
+                            class="fa-solid fa-times"></i></button>
+                </div>
+                <div id="dynamic-form-container">
+                    <!-- Dynamic Form HTML -->
+                </div>
+            </div>
+        </div>
 
     </div>
 

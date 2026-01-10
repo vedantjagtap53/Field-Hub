@@ -456,12 +456,7 @@ const store = {
         });
     },
 
-    addReport: async (report) => {
-        return await window.db.collection('reports').add({
-            ...report,
-            createdAt: new Date().toISOString()
-        });
-    },
+
 
     // --- MESSAGING ---
     getMessages: (counterpartId = null) => {
