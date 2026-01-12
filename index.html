@@ -4,23 +4,604 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FieldHub | Integrated Field Operations</title>
+    <title>FieldHub | Integrated Field Operations Management for NGOs</title>
+    <meta name="description"
+        content="FieldHub helps NGOs manage field operations with geo-fenced attendance, task management, real-time reporting, and volunteer coordination. Streamline your field projects today.">
+    <meta name="keywords"
+        content="NGO management, field operations, volunteer management, attendance tracking, task management, geofencing">
+    <meta name="author" content="FieldHub">
+    <meta property="og:title" content="FieldHub - Integrated Field Operations">
+    <meta property="og:description"
+        content="Streamline your NGO field operations with geo-fenced attendance, task management, and real-time reporting.">
+    <meta property="og:type" content="website">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="canonical" href="https://fieldhub.app">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Maps -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles/main.css">
+
+    <style>
+        /* Landing Page Specific Styles */
+        .landing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navigation */
+        .landing-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .landing-nav .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .landing-nav .logo i {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .nav-links-landing {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links-landing a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links-landing a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            padding: 60px 0 100px;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 50%, var(--accent) 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 5s ease infinite;
+        }
+
+        @keyframes gradientText {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hero-buttons .btn-primary {
+            padding: 16px 32px;
+            font-size: 1rem;
+            border-radius: 50px;
+        }
+
+        .hero-buttons .btn-outline {
+            padding: 16px 32px;
+            font-size: 1rem;
+            border-radius: 50px;
+        }
+
+        .hero-visual {
+            position: relative;
+            height: 400px;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-card.card-1 {
+            top: 20px;
+            left: 20px;
+            animation-delay: 0s;
+        }
+
+        .floating-card.card-2 {
+            top: 120px;
+            right: 20px;
+            animation-delay: 2s;
+        }
+
+        .floating-card.card-3 {
+            bottom: 40px;
+            left: 60px;
+            animation-delay: 4s;
+        }
+
+        .floating-card i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .floating-card .card-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .floating-card .card-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            padding: 60px 0;
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .stat-item .stat-label {
+            color: #94A3B8;
+            font-size: 1rem;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 60px;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 40px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .step-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        .step-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Features Grid */
+        .features-section {
+            padding: 100px 0;
+            background: var(--bg-dark);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .feature-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+        }
+
+        .feature-icon.green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+        }
+
+        .feature-icon.purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8B5CF6;
+        }
+
+        .feature-icon.orange {
+            background: rgba(245, 158, 11, 0.1);
+            color: #F59E0B;
+        }
+
+        .feature-icon.pink {
+            background: rgba(236, 72, 153, 0.1);
+            color: #EC4899;
+        }
+
+        .feature-icon.cyan {
+            background: rgba(6, 182, 212, 0.1);
+            color: #06B6D4;
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* use_cases */
+        .use_cases-section {
+            padding: 100px 0;
+        }
+
+        .use_cases-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .testimonial-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+        }
+
+        .testimonial-card .quote {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .testimonial-card .author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .testimonial-card .author img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .testimonial-card .author-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .testimonial-card .author-info span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* CTA Banner */
+        .cta-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            padding: 80px 40px;
+            border-radius: 32px;
+            text-align: center;
+            margin: 60px 0;
+        }
+
+        .cta-banner h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta-banner p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 32px;
+        }
+
+        .cta-banner .btn-white {
+            background: white;
+            color: var(--primary);
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-banner .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer */
+        .landing-footer {
+            padding: 60px 0 30px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .footer-brand .logo i {
+            color: var(--primary);
+        }
+
+        .footer-brand p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .footer-column h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 12px;
+        }
+
+        .footer-column ul li a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .footer-column ul li a:hover {
+            color: var(--primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-hover);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 992px) {
+            .hero-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-grid,
+            .features-grid,
+            .use_cases-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .landing-nav {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-links-landing {
+                gap: 15px;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-item .stat-number {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-banner {
+                padding: 50px 20px;
+                border-radius: 20px;
+            }
+
+            .cta-banner h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -32,7 +613,7 @@
         </div>
     </div>
 
-    <!-- Theme Toggle (Global - Hidden on dashboards) -->
+    <!-- Theme Toggle -->
     <div class="theme-toggle" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
         <i class="theme-icon fa-solid fa-moon"></i>
     </div>
@@ -43,145 +624,238 @@
         <div class="blob blob-3"></div>
     </div>
 
-    <!-- Floating Particles -->
-    <div class="floating-particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
-
-    <!-- Modal Helpers -->
     <div id="app">
-        <!-- Landing Page (Default Public View) -->
-        <section id="landing-page" class="view active" style="overflow-y: auto; height: 100vh; padding: 20px;">
-            <!-- Hero Section -->
-            <div style="max-width: 1200px; margin: 0 auto;">
+        <section id="landing-page" class="view active" style="overflow-y: auto; height: 100vh;">
+            <div class="landing-container">
 
-                <!-- Navigation / Header -->
-                <nav class="glass-panel"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 40px;">
-                    <div style="display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 700;">
-                        <i class="fa-solid fa-satellite-dish" style="color: var(--primary);"></i> FieldHub
+                <!-- Navigation -->
+                <nav class="landing-nav">
+                    <div class="logo">
+                        <i class="fa-solid fa-satellite-dish"></i> FieldHub
                     </div>
-                    <div style="display: flex; gap: 15px;">
-                        <button class="btn-text"
-                            onclick="document.getElementById('about-section').scrollIntoView({behavior: 'smooth'})">About</button>
+                    <div class="nav-links-landing">
+                        <a href="#features">Features</a>
+                        <a href="#how-it-works">How It Works</a>
+                        <a href="#use_cases">Use cases</a>
                         <button class="btn-primary" onclick="window.location.href='app.html'">Login</button>
                     </div>
                 </nav>
 
-                <!-- Hero Content -->
-                <div
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-bottom: 60px;">
-                    <div>
-                        <h1
-                            style="font-size: 3.5rem; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
-                            Streamline Your NGO Operations
-                        </h1>
-                        <p
-                            style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 30px; line-height: 1.6;">
-                            Changes the way you manage field projects. Track attendance, manage sites, and collect
-                            reports in real-time.
-                            Empower your volunteers with clear tasks and easy-to-use tools.
+                <!-- Hero Section -->
+                <section class="hero-section">
+                    <div class="hero-content">
+                        <h1>Streamline Your NGO Field Operations</h1>
+                        <p>
+                            Transform how you manage field projects. Track attendance with geofencing,
+                            assign tasks in real-time, collect reports instantly, and empower your volunteers
+                            with tools that just work.
                         </p>
-                        <div style="display: flex; gap: 20px;">
-                            <button class="btn-primary" onclick="openModal('registration-modal')"
-                                style="padding: 15px 40px; font-size: 1.1rem; border-radius: 50px;">
-                                Join as Volunteer <i class="fa-solid fa-arrow-right"></i>
+                        <div class="hero-buttons">
+                            <button class="btn-primary" onclick="openModal('registration-modal')">
+                                <i class="fa-solid fa-rocket"></i> Volunteer Now!
                             </button>
-                            <button class="btn-outline" onclick="window.location.href='app.html'"
-                                style="padding: 15px 40px; font-size: 1.1rem; border-radius: 50px;">
-                                Login
+                            <button class="btn-outline" onclick="window.location.href='app.html'">
+                                <i class="fa-solid fa-right-to-bracket"></i> Login
                             </button>
                         </div>
                     </div>
-                    <!-- Hero Image / Illustration Placeholder -->
-                    <div class="glass-panel"
-                        style="padding: 40px; text-align: center; position: relative; overflow: hidden;">
-                        <div
-                            style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: var(--primary); opacity: 0.1; border-radius: 50%; filter: blur(40px);">
+                    <div class="hero-visual">
+                        <div class="floating-card card-1">
+                            <i class="fa-solid fa-check-circle" style="color: var(--success);"></i>
+                            <span class="card-title">Task Updates</span>
+                            <div class="card-sub">Mark tasks as complete</div>
                         </div>
-                        <i class="fa-solid fa-map-location-dot"
-                            style="font-size: 8rem; color: var(--text-muted); opacity: 0.2;"></i>
-                        <div style="margin-top: -4rem; position: relative;">
-                            <div class="glass-panel"
-                                style="display: inline-block; padding: 20px; margin-bottom: 10px; animation: float 6s ease-in-out infinite;">
-                                <i class="fa-solid fa-check-circle" style="color: var(--success);"></i> Task
-                                Completed<br>
-                                <small style="color: var(--text-secondary);">Park Restoration - Site A</small>
-                            </div>
-                            <br>
-                            <div class="glass-panel"
-                                style="display: inline-block; padding: 20px; animation: float 6s ease-in-out infinite 2s;">
-                                <i class="fa-solid fa-user-clock" style="color: var(--warning);"></i> 12 Staff
-                                Active<br>
-                                <small style="color: var(--text-secondary);">Real-time Attendance</small>
-                            </div>
+                        <div class="floating-card card-2">
+                            <i class="fa-solid fa-users" style="color: var(--primary);"></i>
+                            <span class="card-title">Team Tracking</span>
+                            <div class="card-sub">See who's active</div>
+                        </div>
+                        <div class="floating-card card-3">
+                            <i class="fa-solid fa-location-dot" style="color: var(--warning);"></i>
+                            <span class="card-title">Geo-Verified</span>
+                            <div class="card-sub">Location-based check-in</div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="landing-container">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number"><i class="fa-solid fa-location-crosshairs"></i></div>
+                            <div class="stat-label">GPS Geofencing</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number"><i class="fa-solid fa-clock"></i></div>
+                            <div class="stat-label">Real-Time Tracking</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number"><i class="fa-solid fa-chart-pie"></i></div>
+                            <div class="stat-label">Visual Analytics</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number"><i class="fa-solid fa-mobile-screen"></i></div>
+                            <div class="stat-label">Mobile Friendly</div>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Features Section -->
-                <h2 id="about-section" style="text-align: center; font-size: 2.5rem; margin-bottom: 40px;">Why FieldHub?
-                </h2>
+            <div class="landing-container">
 
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 80px;">
-                    <div class="glass-panel" style="padding: 30px;">
-                        <div
-                            style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                            <i class="fa-solid fa-folder-tree" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <!-- How It Works -->
+                <section class="how-it-works" id="how-it-works">
+                    <h2 class="section-title">How It Works</h2>
+                    <p class="section-subtitle">Get started in three simple steps</p>
+                    <div class="steps-grid">
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <h3>Create Your Workspace</h3>
+                            <p>Set up your organization, define project sites with geofences, and invite your team
+                                members.</p>
                         </div>
-                        <h3>Project Management</h3>
-                        <p style="color: var(--text-secondary); margin-top: 10px;">
-                            Organize multiple initiatives seamlessly. Assign sites and workers to specific projects like
-                            "Disaster Relief" or "Education Drive".
-                        </p>
-                    </div>
-                    <div class="glass-panel" style="padding: 30px;">
-                        <div
-                            style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                            <i class="fa-solid fa-location-dot" style="font-size: 1.5rem; color: var(--success);"></i>
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <h3>Assign & Track</h3>
+                            <p>Create tasks, assign them to field workers, and monitor real-time attendance with GPS
+                                verification.</p>
                         </div>
-                        <h3>Geo-Fenced Attendance</h3>
-                        <p style="color: var(--text-secondary); margin-top: 10px;">
-                            Ensure accountability. Workers can only clock in when physically present at the assigned
-                            site location.
-                        </p>
-                    </div>
-                    <div class="glass-panel" style="padding: 30px;">
-                        <div
-                            style="width: 50px; height: 50px; background: rgba(139, 92, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                            <i class="fa-solid fa-chart-line" style="font-size: 1.5rem; color: var(--accent);"></i>
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <h3>Analyze & Report</h3>
+                            <p>Collect field reports with photos, export data, and gain insights with visual analytics
+                                dashboards.</p>
                         </div>
-                        <h3>Real-Time Reporting</h3>
-                        <p style="color: var(--text-secondary); margin-top: 10px;">
-                            Collect data from the ground instantly. Volunteers can submit photo reports and tasks
-                            updates directly from their mobile.
-                        </p>
                     </div>
-                </div>
+                </section>
+
+                <!-- Features -->
+                <section class="features-section" id="features">
+                    <h2 class="section-title">Everything You Need</h2>
+                    <p class="section-subtitle">Powerful features designed for field operations</p>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon blue"><i class="fa-solid fa-folder-tree"></i></div>
+                            <h3>Project Management</h3>
+                            <p>Organize multiple initiatives. Assign sites and workers to specific projects like
+                                "Disaster Relief" or "Education Drive".</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon green"><i class="fa-solid fa-location-dot"></i></div>
+                            <h3>Geo-Fenced Attendance</h3>
+                            <p>Ensure accountability. Workers can only clock in when physically present at the assigned
+                                site location.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon purple"><i class="fa-solid fa-chart-line"></i></div>
+                            <h3>Real-Time Reporting</h3>
+                            <p>Collect data instantly. Volunteers submit photo reports and task updates directly from
+                                their mobile.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon orange"><i class="fa-solid fa-calendar-check"></i></div>
+                            <h3>Leave Management</h3>
+                            <p>Handle time-off requests seamlessly. Workers request leave, admins approve with one
+                                click.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon pink"><i class="fa-solid fa-comments"></i></div>
+                            <h3>Team Messaging</h3>
+                            <p>Stay connected. Send broadcasts to all staff or chat directly with individual team
+                                members.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon cyan"><i class="fa-solid fa-download"></i></div>
+                            <h3>Data Export</h3>
+                            <p>Export attendance logs, reports, and analytics as CSV or JSON for your records and
+                                reporting needs.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Use Cases Section -->
+                <section class="use_cases-section" id="use_cases">
+                    <h2 class="section-title">Use Cases</h2>
+                    <p class="section-subtitle">FieldHub works for any organization managing field teams</p>
+                    <div class="use_cases-grid">
+                        <div class="testimonial-card" style="text-align: center;">
+                            <i class="fa-solid fa-hands-holding-heart"
+                                style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 8px;">NGOs & Non-Profits</h3>
+                            <p style="color: var(--text-secondary);">Manage volunteers, track attendance at relief
+                                sites, and collect field reports.</p>
+                        </div>
+                        <div class="testimonial-card" style="text-align: center;">
+                            <i class="fa-solid fa-building"
+                                style="font-size: 3rem; color: var(--success); margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 8px;">Field Service Companies</h3>
+                            <p style="color: var(--text-secondary);">Track technicians, manage job sites, and ensure
+                                on-site presence.</p>
+                        </div>
+                        <div class="testimonial-card" style="text-align: center;">
+                            <i class="fa-solid fa-graduation-cap"
+                                style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 8px;">Educational Institutions</h3>
+                            <p style="color: var(--text-secondary);">Coordinate field trips, track student groups, and
+                                maintain safety records.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CTA Banner -->
+                <section class="cta-banner">
+                    <h2>Ready to Try FieldHub?</h2>
+                    <p>Register as a volunteer or login to explore the platform.</p>
+                    <button class="btn-white" onclick="openModal('registration-modal')">
+                        <i class="fa-solid fa-rocket"></i> Volunteer Now!
+                    </button>
+                </section>
 
                 <!-- Footer -->
-                <footer
-                    style="text-align: center; padding: 40px; border-top: 1px solid var(--border); color: var(--text-muted);">
-                    <p>&copy; 2024 FieldHub. Built for NGOs.</p>
+                <footer class="landing-footer">
+                    <div class="footer-grid" style="grid-template-columns: 2fr 1fr;">
+                        <div class="footer-brand">
+                            <div class="logo">
+                                <i class="fa-solid fa-satellite-dish"></i> FieldHub
+                            </div>
+                            <p>Empowering NGOs with modern field operations management. Track attendance, manage tasks,
+                                and grow your impact.</p>
+                            <div class="social-links">
+                                <a href="https://github.com/vedantjagtap53/Field-Hub" target="_blank" title="GitHub"><i
+                                        class="fa-brands fa-github"></i></a>
+                            </div>
+                        </div>
+                        <div class="footer-column">
+                            <h4>Quick Links</h4>
+                            <ul>
+                                <li><a href="#features">Features</a></li>
+                                <li><a href="#how-it-works">How It Works</a></li>
+                                <li><a href="app.html">Login</a></li>
+                                <li><a href="#" onclick="openModal('registration-modal'); return false;">Register</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="footer-bottom">
+                        <p>&copy; 2026 FieldHub.</p>
+                    </div>
                 </footer>
 
             </div>
         </section>
 
-
-
-        <!-- Registration Modal (Public) -->
+        <!-- Registration Modal -->
         <div id="registration-modal" class="modal hidden">
             <div class="modal-content glass-panel">
                 <h3>Volunteer Registration</h3>
                 <form id="registration-form">
                     <input type="text" name="name" placeholder="Full Name" required class="input-light">
                     <input type="email" name="email" placeholder="Email Address" required class="input-light">
-                    <input type="tel" name="phone" placeholder="Phone Number" required class="input-light">
+                    <input type="tel" name="phone" placeholder="Phone Number" required class="input-light"
+                        pattern="[0-9]{10}" title="Enter 10-digit phone number">
                     <input type="text" name="skills" placeholder="Skills / Experience (Optional)" class="input-light">
                     <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
                         Your account will be reviewed by an administrator. You will be able to login once approved.
@@ -194,23 +868,15 @@
                 </form>
             </div>
         </div>
-
     </div>
 
-    <!-- Core Scripts (Must be last) -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Firebase SDKs (Compat) -->
+    <!-- Core Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-    <!-- Firebase Config -->
     <script src="js/firebase-config.js"></script>
-
     <script src="js/store_v2.js"></script>
-    <script src="js/app_v2.js"></script>
+    <script type="module" src="js/app_v2.js"></script>
 
     <!-- Failsafe Splash Removal -->
     <script>
@@ -218,7 +884,18 @@
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) splash.classList.add('fade-out');
-            }, 2000);
+            }, 1500);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
     </script>
 </body>

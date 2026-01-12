@@ -2632,7 +2632,13 @@ body {
 }
 
 .mobile-nav a:hover {
-    transform: translateY(-4px);
+    color: var(--primary);
+}
+
+/* Disable glass-panel hover transform for mobile-nav */
+.mobile-nav:hover {
+    transform: translateX(-50%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* ========================================
