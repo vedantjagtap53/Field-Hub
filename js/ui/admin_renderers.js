@@ -16,7 +16,7 @@ export const AdminRenderers = {
         }
 
         // Populate site select for worker form
-        const sites = window.store.getAllSites();
+        const sites = window.store.getSites();
         const siteSel = document.getElementById('site-select');
         if (siteSel) {
             const val = siteSel.value;
@@ -225,20 +225,25 @@ export const AdminRenderers = {
         const list = document.getElementById('admin-task-list');
         if (!list) return;
 
-        list.innerHTML = tasks.length ? tasks.map(t => {
+        list.innerHTML = tasks.length ? tasks.map((t, index) => {
             const u = window.store.getUsers().find(user => user.id === t.assignedTo);
+            const taskText = `${t.title} - ${t.location}`;
             return `
-            <div class="glass-panel" style="margin-bottom:10px; padding:16px; display:flex; justify-content:space-between; align-items:center;">
-                <div style="flex:1;">
-                    <h4 style="margin:0; font-size:1rem;">${t.title}</h4>
-                    <p style="font-size:0.85rem; color:var(--text-secondary); margin:4px 0 0;">
-                        ${u ? u.name : 'Unassigned'} • ${t.location} • ${t.time}
-                    </p>
+            <div class="glass-panel" style="margin-bottom:10px; padding:16px;" id="task-card-${index}">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="flex:1;">
+                        <h4 style="margin:0; font-size:1rem;">${t.title}</h4>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin:4px 0 0;">
+                            ${u ? u.name : 'Unassigned'} • ${t.location} • ${t.time}
+                        </p>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button class="chip-btn" onclick="window.translateTask(${index}, '${taskText.replace(/'/g, "\\'")}')"><i class="fa-solid fa-language"></i></button>
+                        <span style="font-size:0.7rem; padding:4px 10px; border-radius:4px; background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary); text-transform:uppercase; font-weight:600;">${t.priority}</span>
+                        <span style="font-size:0.7rem; padding:4px 10px; border-radius:4px; background:${t.status === 'completed' ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)'}; color:${t.status === 'completed' ? 'var(--primary)' : 'var(--text-muted)'}; border:1px solid ${t.status === 'completed' ? 'var(--primary)' : 'var(--border)'}; text-transform:uppercase; font-weight:600;">${t.status}</span>
+                    </div>
                 </div>
-                <div style="display:flex; gap:8px;">
-                    <span style="font-size:0.7rem; padding:4px 10px; border-radius:4px; background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary); text-transform:uppercase; font-weight:600;">${t.priority}</span>
-                    <span style="font-size:0.7rem; padding:4px 10px; border-radius:4px; background:${t.status === 'completed' ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)'}; color:${t.status === 'completed' ? 'var(--primary)' : 'var(--text-muted)'}; border:1px solid ${t.status === 'completed' ? 'var(--primary)' : 'var(--border)'}; text-transform:uppercase; font-weight:600;">${t.status}</span>
-                </div>
+                <div id="task-translation-${index}" style="display:none; margin-top:10px; padding:10px; background:rgba(99, 102, 241, 0.1); border-radius:6px; border-left:3px solid var(--primary); font-size:0.85rem;"></div>
             </div>`;
         }).join('') : '<p style="text-align:center; padding:40px; color:var(--text-muted);">No tasks.</p>';
     },
@@ -332,22 +337,26 @@ export const AdminRenderers = {
         const list = document.getElementById('admin-reports-list');
         if (!list) return;
 
-        list.innerHTML = reports.length ? reports.map(r => {
+        list.innerHTML = reports.length ? reports.map((r, index) => {
             const user = window.store.getUsers().find(u => u.id === r.userId);
             const date = new Date(r.timestamp);
             const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
             return `
-            <div class="glass-panel" style="padding:16px; margin-bottom:12px;">
+            <div class="glass-panel" style="padding:16px; margin-bottom:12px;" id="report-card-${index}">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <div>
                         <strong style="font-size:1rem;">${user ? user.name : 'Unknown User'}</strong>
                         <p style="font-size:0.85rem; color:var(--text-muted); margin:4px 0 0;">${dateStr} at ${timeStr}</p>
                     </div>
-                    ${r.hasPhoto ? '<span style="font-size:0.75rem; padding:3px 8px; border-radius:4px; background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary); height:fit-content;"><i class="fa-solid fa-camera"></i> Photo</span>' : ''}
+                    <div style="display:flex; gap:8px; align-items:start;">
+                        ${r.hasPhoto ? '<span style="font-size:0.75rem; padding:3px 8px; border-radius:4px; background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary); height:fit-content;"><i class="fa-solid fa-camera"></i> Photo</span>' : ''}
+                        <button class="chip-btn" onclick="window.translateReport(${index}, '${r.content.replace(/'/g, "\\'")}')"><i class="fa-solid fa-language"></i> Translate</button>
+                    </div>
                 </div>
-                <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; padding:12px; background:var(--bg-darker); border-radius:6px; border-left:3px solid var(--primary);">${r.content}</p>
+                <div id="report-content-${index}" style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; padding:12px; background:var(--bg-darker); border-radius:6px; border-left:3px solid var(--primary);">${r.content}</div>
+                <div id="report-translation-${index}" style="display:none; margin-top:10px; padding:12px; background:rgba(99, 102, 241, 0.1); border-radius:6px; border-left:3px solid var(--primary); font-size:0.9rem; color:var(--text-primary);"></div>
                 ${r.photoData ? `<div style="margin-top:10px; text-align:center;"><img src="${r.photoData}" style="max-width:100%; max-height:300px; border-radius:6px; cursor:pointer; border:1px solid var(--border);" onclick="window.open(this.src)"></div>` : ''}
             </div>
             `;

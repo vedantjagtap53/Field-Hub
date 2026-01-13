@@ -189,6 +189,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Store
     if (window.store) {
         await window.store.init();
+
+        // Subscribe to store updates to keep UI in sync (Fixes persistence issues)
+        window.store.subscribe(() => {
+            const user = window.store.getCurrentUser();
+            // Only update if we are in field view
+            if (user && user.role === 'field' && !views.field.classList.contains('hidden')) {
+                // Determine status from store
+                const att = window.store.getStaffStatus().find(s => s.id === user.id);
+                const status = att ? att.status : 'out';
+                const lastLoc = att ? att.lastLoc : 'Ready to start';
+
+                // Update Clock UI
+                if (window.FieldRenderers && window.FieldRenderers.updateClockUI) {
+                    window.FieldRenderers.updateClockUI(status, lastLoc);
+                }
+
+                // Refresh tasks if needed (to show/hide lock screen)
+                if (window.FieldRenderers && window.FieldRenderers.renderFieldTasks) {
+                    window.FieldRenderers.renderFieldTasks(user.id);
+                }
+            }
+        });
+
         checkSession();
     } else {
         Toast.error("System initialization failed. Reloading...");
@@ -435,6 +458,46 @@ window.openAddWorkerModal = () => {
     UI.openModal('worker-modal');
 };
 
+window.editWorker = (workerId) => {
+    const worker = window.store.getUsers().find(u => u.id === workerId);
+    if (!worker) return;
+
+    const form = document.getElementById('worker-form');
+    if (!form) return;
+
+    form.workerId.value = workerId;
+    form.name.value = worker.name || '';
+    form.email.value = worker.email || '';
+    form.phone.value = worker.phone || '';
+    if (form.role) form.role.value = worker.role || 'field';
+    if (form.assignedSite) form.assignedSite.value = worker.assignedSite || '';
+
+    // Password not required for editing
+    const passInput = form.querySelector('input[name="password"]');
+    if (passInput) {
+        passInput.required = false;
+        passInput.placeholder = "New Password (leave blank to keep current)";
+    }
+
+    document.querySelector('#worker-modal h3').innerText = 'Edit Worker';
+    document.querySelector('#worker-modal button[type=submit]').innerText = 'Update Worker';
+    UI.openModal('worker-modal');
+};
+
+window.toggleWorker = async (workerId) => {
+    const worker = window.store.getUsers().find(u => u.id === workerId);
+    if (!worker) return;
+
+    const newStatus = !worker.active;
+    const action = newStatus ? 'activate' : 'deactivate';
+
+    if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${worker.name}?`)) {
+        await window.store.updateWorker(workerId, { active: newStatus });
+        AdminRenderers.renderStaff();
+        Toast.success(`Worker ${action}d`);
+    }
+};
+
 window.deleteProject = async (id) => {
     if (confirm('Delete this project?')) {
         await window.store.deleteProject(id);
@@ -455,6 +518,474 @@ window.editProject = (projectId) => {
     document.querySelector('#project-modal button[type=submit]').innerText = 'Update Project';
     UI.openModal('project-modal');
 };
+
+// ========================================
+// AI TRANSLATION FEATURE
+// ========================================
+
+// Store the current report being translated
+let currentTranslationIndex = null;
+let currentTranslationContent = '';
+
+window.translateReport = (index, content) => {
+    currentTranslationIndex = index;
+    currentTranslationContent = content;
+    UI.openModal('translate-modal');
+};
+
+window.performTranslation = async (targetLang) => {
+    if (currentTranslationIndex === null || !currentTranslationContent) {
+        Toast.error('No report selected for translation');
+        return;
+    }
+
+    const translationDiv = document.getElementById(`report-translation-${currentTranslationIndex}`);
+    if (!translationDiv) return;
+
+    // Show loading state
+    translationDiv.style.display = 'block';
+    translationDiv.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; color:var(--text-muted);">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Translating to ${targetLang}...
+        </div>
+    `;
+
+    UI.closeModal('translate-modal');
+
+    try {
+        const translated = await window.AIService.translate(currentTranslationContent, targetLang);
+        translationDiv.innerHTML = `
+            <div style="margin-bottom:6px; font-weight:600; color:var(--primary); font-size:0.8rem;">
+                <i class="fa-solid fa-language"></i> Translated to ${targetLang}
+            </div>
+            <div>${translated}</div>
+        `;
+        Toast.success('Translation complete!');
+    } catch (error) {
+        translationDiv.innerHTML = `
+            <div style="color:var(--error);">
+                <i class="fa-solid fa-exclamation-triangle"></i> Translation failed. Please try again.
+            </div>
+        `;
+        Toast.error('Translation failed');
+    }
+
+    // Reset
+    currentTranslationIndex = null;
+    currentTranslationContent = '';
+};
+
+// Task translation variables
+let currentTaskIndex = null;
+let currentTaskContent = '';
+let currentTaskType = 'admin'; // 'admin' or 'field'
+
+window.translateTask = (index, content, type = 'admin') => {
+    currentTaskIndex = index;
+    currentTaskContent = content;
+    currentTaskType = type;
+    UI.openModal('translate-task-modal');
+};
+
+window.performTaskTranslation = async (targetLang) => {
+    if (currentTaskIndex === null || !currentTaskContent) {
+        Toast.error('No task selected for translation');
+        return;
+    }
+
+    const prefix = currentTaskType === 'field' ? 'field-task-translation' : 'task-translation';
+    const translationDiv = document.getElementById(`${prefix}-${currentTaskIndex}`);
+    if (!translationDiv) return;
+
+    // Show loading state
+    translationDiv.style.display = 'block';
+    translationDiv.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; color:var(--text-muted);">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Translating to ${targetLang}...
+        </div>
+    `;
+
+    UI.closeModal('translate-task-modal');
+
+    try {
+        const translated = await window.AIService.translate(currentTaskContent, targetLang);
+        translationDiv.innerHTML = `
+            <div style="margin-bottom:4px; font-weight:600; color:var(--primary); font-size:0.75rem;">
+                <i class="fa-solid fa-language"></i> ${targetLang}
+            </div>
+            <div>${translated}</div>
+        `;
+        Toast.success('Translation complete!');
+    } catch (error) {
+        translationDiv.innerHTML = `
+            <div style="color:var(--error);">
+                <i class="fa-solid fa-exclamation-triangle"></i> Translation failed.
+            </div>
+        `;
+        Toast.error('Translation failed');
+    }
+
+    // Reset
+    currentTaskIndex = null;
+    currentTaskContent = '';
+    currentTaskType = 'admin';
+};
+
+// ========================================
+// REPORT WRITING FEATURES
+// ========================================
+
+// Smart Templates
+const reportTemplates = {
+    daily: `📅 DAILY UPDATE
+
+Location: [Current Site]
+Date: ${new Date().toLocaleDateString()}
+
+Activities Completed:
+• 
+
+Issues Encountered:
+• None
+
+Status: ✅ All tasks completed`,
+
+    issue: `⚠️ ISSUE REPORT
+
+Location: 
+Date/Time: ${new Date().toLocaleString()}
+
+Issue Description:
+
+
+Severity: [ ] Low [ ] Medium [ ] High
+
+Action Taken:
+
+
+Follow-up Required: [ ] Yes [ ] No`,
+
+    maintenance: `🔧 MAINTENANCE REPORT
+
+Equipment/Asset: 
+Location: 
+
+Problem Found:
+
+
+Repair/Action Taken:
+
+
+Parts Used:
+• 
+
+Status: [ ] Fixed [ ] Needs Parts [ ] Requires Specialist`,
+
+    observation: `👁️ FIELD OBSERVATION
+
+Location: 
+Date/Time: ${new Date().toLocaleString()}
+
+Observation:
+
+
+Recommendation:
+
+
+Priority: [ ] Low [ ] Medium [ ] High`
+};
+
+window.applyTemplate = (templateType) => {
+    const textarea = document.getElementById('report-content');
+    if (textarea && reportTemplates[templateType]) {
+        textarea.value = reportTemplates[templateType];
+        textarea.focus();
+    }
+};
+
+// One-Tap Tags
+window.addTag = (tag) => {
+    const textarea = document.getElementById('report-content');
+    if (textarea) {
+        const currentText = textarea.value.trim();
+        if (currentText) {
+            textarea.value = `${tag}\n\n${currentText}`;
+        } else {
+            textarea.value = `${tag}\n\n`;
+        }
+        textarea.focus();
+    }
+};
+
+// Voice Commands (Web Speech API)
+let recognition = null;
+let isListening = false;
+
+window.toggleVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        Toast.error('Voice input not supported in this browser');
+        return;
+    }
+
+    if (isListening) {
+        stopVoiceInput();
+    } else {
+        startVoiceInput();
+    }
+};
+
+function startVoiceInput() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+
+    // Get selected language from dropdown
+    const langSelect = document.getElementById('voice-language');
+    const selectedLang = langSelect ? langSelect.value : 'hi-IN';
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = selectedLang;
+
+    const voiceControls = document.getElementById('voice-controls');
+    const micIcon = document.getElementById('mic-icon');
+    const statusText = document.getElementById('voice-status-text');
+    const textarea = document.getElementById('report-content');
+
+    recognition.onstart = () => {
+        isListening = true;
+        voiceControls.style.display = 'block';
+        micIcon.classList.add('recording');
+        micIcon.style.color = '#ef4444';
+        const langName = langSelect.options[langSelect.selectedIndex].text;
+        statusText.textContent = `Listening in ${langName}...`;
+    };
+
+    recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+        }
+
+        // Append to textarea
+        if (event.results[event.resultIndex].isFinal) {
+            textarea.value += transcript + ' ';
+        }
+        statusText.textContent = `Heard: "${transcript.substring(0, 50)}..."`;
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+            Toast.error('Microphone permission denied');
+        }
+        stopVoiceInput();
+    };
+
+    recognition.onend = () => {
+        if (isListening) {
+            recognition.start(); // Keep listening
+        }
+    };
+
+    recognition.start();
+    Toast.success('Voice input started - speak now!');
+}
+
+function stopVoiceInput() {
+    if (recognition) {
+        isListening = false;
+        recognition.stop();
+        recognition = null;
+    }
+
+    const voiceControls = document.getElementById('voice-controls');
+    const micIcon = document.getElementById('mic-icon');
+
+    if (voiceControls) voiceControls.style.display = 'none';
+    if (micIcon) {
+        micIcon.classList.remove('recording');
+        micIcon.style.color = '';
+    }
+
+    Toast.success('Voice input stopped');
+}
+
+// ========================================
+// PHOTO UPLOAD HANDLERS
+// ========================================
+
+// Initialize photo upload handlers when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    const uploadArea = document.getElementById('upload-area-display');
+    const fileInput = document.getElementById('report-photo');
+    const photoPreview = document.getElementById('photo-preview');
+    const previewImage = document.getElementById('preview-image');
+
+    if (uploadArea && fileInput) {
+        // Click on upload area triggers file input
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    Toast.error('Please select an image file');
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    Toast.error('Image must be less than 5MB');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    previewImage.src = event.target.result;
+                    photoPreview.style.display = 'block';
+                    uploadArea.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+
+// Remove photo function
+window.removePhoto = () => {
+    const uploadArea = document.getElementById('upload-area-display');
+    const fileInput = document.getElementById('report-photo');
+    const photoPreview = document.getElementById('photo-preview');
+    const previewImage = document.getElementById('preview-image');
+
+    if (fileInput) fileInput.value = '';
+    if (previewImage) previewImage.src = '';
+    if (photoPreview) photoPreview.style.display = 'none';
+    if (uploadArea) uploadArea.style.display = 'block';
+};
+
+
+// AI Report Helper
+const aiHelperQuestions = [
+    { id: 'what', question: 'What work did you do today?', placeholder: 'e.g., Fixed pump, delivered materials, inspected site...' },
+    { id: 'where', question: 'Where did you do this work?', placeholder: 'e.g., Site 3, Main Office, Village A...' },
+    { id: 'issues', question: 'Any problems or issues?', placeholder: 'e.g., No issues, or describe the problem...' },
+    { id: 'status', question: 'Is the work complete?', placeholder: 'e.g., Yes, No - needs follow-up...' }
+];
+
+let aiHelperAnswers = {};
+let currentQuestionIndex = 0;
+
+window.openAIHelper = () => {
+    aiHelperAnswers = {};
+    currentQuestionIndex = 0;
+
+    const chatDiv = document.getElementById('ai-helper-chat');
+    chatDiv.innerHTML = '';
+
+    document.getElementById('ai-helper-input-area').style.display = 'block';
+    document.getElementById('ai-helper-generating').style.display = 'none';
+
+    UI.openModal('ai-helper-modal');
+    askNextQuestion();
+};
+
+function askNextQuestion() {
+    if (currentQuestionIndex >= aiHelperQuestions.length) {
+        generateAIReport();
+        return;
+    }
+
+    const q = aiHelperQuestions[currentQuestionIndex];
+    const chatDiv = document.getElementById('ai-helper-chat');
+    const inputField = document.getElementById('ai-helper-input');
+
+    chatDiv.innerHTML += `
+        <div style="background: rgba(99, 102, 241, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+            <strong style="color: var(--primary);"><i class="fa-solid fa-robot"></i> AI:</strong>
+            <p style="margin: 4px 0 0;">${q.question}</p>
+        </div>
+    `;
+
+    inputField.placeholder = q.placeholder;
+    inputField.value = '';
+    inputField.focus();
+
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+}
+
+window.sendAIHelperAnswer = () => {
+    const inputField = document.getElementById('ai-helper-input');
+    const answer = inputField.value.trim();
+
+    if (!answer) return;
+
+    const chatDiv = document.getElementById('ai-helper-chat');
+    const q = aiHelperQuestions[currentQuestionIndex];
+
+    // Show user's answer
+    chatDiv.innerHTML += `
+        <div style="background: var(--bg-hover); padding: 10px; border-radius: 8px; margin-bottom: 8px; margin-left: 20px;">
+            <strong><i class="fa-solid fa-user"></i> You:</strong>
+            <p style="margin: 4px 0 0;">${answer}</p>
+        </div>
+    `;
+
+    aiHelperAnswers[q.id] = answer;
+    currentQuestionIndex++;
+
+    inputField.value = '';
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
+    setTimeout(() => askNextQuestion(), 500);
+};
+
+// Handle Enter key in AI helper input
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('ai-helper-input');
+    if (input) {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.sendAIHelperAnswer();
+            }
+        });
+    }
+});
+
+async function generateAIReport() {
+    document.getElementById('ai-helper-input-area').style.display = 'none';
+    document.getElementById('ai-helper-generating').style.display = 'block';
+
+    const prompt = `You are helping a field worker write a professional report. Based on their answers, generate a clear, well-structured field report.
+
+Worker's answers:
+- What they did: ${aiHelperAnswers.what}
+- Location: ${aiHelperAnswers.where}
+- Issues: ${aiHelperAnswers.issues}
+- Status: ${aiHelperAnswers.status}
+
+Generate a professional field report (3-5 sentences). Use simple language. Include date/time. Format nicely with bullet points if needed. Start with a status emoji.`;
+
+    try {
+        const report = await window.AIService.generate(prompt);
+
+        // Insert into report textarea
+        const textarea = document.getElementById('report-content');
+        textarea.value = report;
+
+        UI.closeModal('ai-helper-modal');
+        Toast.success('Report generated! Review and submit.');
+    } catch (error) {
+        Toast.error('Failed to generate report. Please try again.');
+        document.getElementById('ai-helper-input-area').style.display = 'block';
+        document.getElementById('ai-helper-generating').style.display = 'none';
+    }
+}
 
 window.deleteSite = async (id) => {
     if (confirm('Deactivate this site?')) {
@@ -492,6 +1023,49 @@ window.removePhoto = function () {
     document.getElementById('photo-preview').style.display = 'none';
     document.getElementById('upload-area-display').style.display = 'block';
     document.getElementById('report-photo').value = '';
+};
+
+// ========================================
+// AI FEATURES
+// ========================================
+
+window.generateDailyBriefing = async () => {
+    const container = document.getElementById('ai-briefing-container');
+    const btn = document.getElementById('generate-briefing-btn');
+    if (!container || !btn) return;
+
+    // Show loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    container.innerHTML = '<p style="color: var(--text-muted); font-style: italic;"><i class="fa-solid fa-brain"></i> AI is analyzing your data...</p>';
+
+    try {
+        // Gather data
+        const stats = window.store.getStats();
+        const logs = window.store.getAttendanceLogs(null, 20);
+        const reports = window.store.getReports();
+        const leaves = window.store.getLeaveRequests();
+
+        // Call AI Service
+        const briefing = await window.AIService.generateBriefing(stats, logs, reports, leaves);
+
+        // Format the response (convert markdown to HTML-safe)
+        const formattedBriefing = briefing
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/^- /gm, '• ')
+            .replace(/\n/g, '<br>');
+
+        container.innerHTML = `<div style="white-space: pre-wrap;">${formattedBriefing}</div>`;
+        Toast.success('Briefing generated!');
+    } catch (error) {
+        console.error('AI Briefing Error:', error);
+        container.innerHTML = `<p style="color: #ef4444;"><i class="fa-solid fa-exclamation-triangle"></i> Failed to generate briefing. ${error.message || 'Check console for details.'}</p>`;
+        Toast.error('Briefing generation failed');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate';
+    }
 };
 
 // ========================================
@@ -877,7 +1451,7 @@ function setupForms() {
 
         Loading.show();
         await new Promise(r => setTimeout(r, 300));
-        window.store.addTask({
+        await window.store.addTask({
             title: fd.get('title'),
             location: fd.get('location'),
             assignedTo: assignedId,
@@ -907,7 +1481,40 @@ function setupForms() {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(async (pos) => {
                         const { latitude, longitude } = pos.coords;
-                        const site = window.store.findNearestSite([latitude, longitude]);
+
+                        // PRIORITY 1: Check if worker has an assigned site
+                        let site = null;
+                        if (user.assignedSite) {
+                            const allSites = window.store.getAllSites();
+                            const assignedSite = allSites.find(s => s.id === user.assignedSite);
+                            if (assignedSite && assignedSite.coords) {
+                                // Calculate distance to assigned site
+                                const R = 6371e3; // metres
+                                let siteLat, siteLng;
+                                if (Array.isArray(assignedSite.coords)) {
+                                    siteLat = assignedSite.coords[0];
+                                    siteLng = assignedSite.coords[1];
+                                } else {
+                                    siteLat = assignedSite.coords.lat;
+                                    siteLng = assignedSite.coords.lng;
+                                }
+                                const φ1 = latitude * Math.PI / 180;
+                                const φ2 = siteLat * Math.PI / 180;
+                                const Δφ = (siteLat - latitude) * Math.PI / 180;
+                                const Δλ = (siteLng - longitude) * Math.PI / 180;
+                                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                                    Math.cos(φ1) * Math.cos(φ2) *
+                                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                                const distance = R * c;
+                                site = { ...assignedSite, distance };
+                            }
+                        }
+
+                        // PRIORITY 2: Fall back to nearest site if no assigned site
+                        if (!site) {
+                            site = window.store.findNearestSite([latitude, longitude]);
+                        }
 
                         // 1. Must have at least one site in the system
                         if (!site) {
@@ -919,7 +1526,7 @@ function setupForms() {
                         }
 
                         // 2. STRICT CHECK: Must be within radius
-                        // site.distance is in meters (calculated in store_v2.js)
+                        // site.distance is in meters (calculated above or in store_v2.js)
                         // site.radius is in meters (default 200)
                         const allowedRadius = site.radius || 200;
 

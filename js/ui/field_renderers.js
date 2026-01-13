@@ -53,19 +53,25 @@ export const FieldRenderers = {
         }
 
         const tasks = window.store.getTasks(userId);
-        list.innerHTML = tasks.length ? tasks.map(task => `
-            <div class="task-card glass-panel">
+        list.innerHTML = tasks.length ? tasks.map((task, index) => {
+            const taskText = `${task.title} - ${task.location}`;
+            return `
+            <div class="task-card glass-panel" id="field-task-${index}">
                 <div class="task-header">
                     <span class="badge">${task.priority}</span>
-                    <span style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-clock"></i> ${task.time}</span>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button class="chip-btn" onclick="window.translateTask(${index}, '${taskText.replace(/'/g, "\\'")}', 'field')"><i class="fa-solid fa-language"></i></button>
+                        <span style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-clock"></i> ${task.time}</span>
+                    </div>
                 </div>
                 <h4>${task.title}</h4>
                 <p><i class="fa-solid fa-location-dot"></i> ${task.location}</p>
+                <div id="field-task-translation-${index}" style="display:none; margin:10px 0; padding:10px; background:rgba(99, 102, 241, 0.1); border-radius:6px; border-left:3px solid var(--primary); font-size:0.85rem;"></div>
                 ${task.status === 'pending' ?
-                `<button class="btn-primary" style="width:100%; padding:10px;" onclick="window.completeTask('${task.id}')"><i class="fa-solid fa-check"></i> Complete</button>` :
-                `<div style="color:var(--primary); text-align:center; padding:10px; background:rgba(59,130,246,0.1); border-radius:6px; border: 1px solid var(--primary);"><i class="fa-solid fa-check-circle"></i> Completed</div>`}
+                    `<button class="btn-primary" style="width:100%; padding:10px;" onclick="window.completeTask('${task.id}')"><i class="fa-solid fa-check"></i> Complete</button>` :
+                    `<div style="color:var(--primary); text-align:center; padding:10px; background:rgba(59,130,246,0.1); border-radius:6px; border: 1px solid var(--primary);"><i class="fa-solid fa-check-circle"></i> Completed</div>`}
             </div>
-        `).join('') : '<p style="text-align:center; opacity:0.6; padding:40px;">No tasks assigned.</p>';
+        `}).join('') : '<p style="text-align:center; opacity:0.6; padding:40px;">No tasks assigned.</p>';
     },
 
     renderFieldLeaves: () => {

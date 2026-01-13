@@ -29,7 +29,7 @@
     <!-- Splash Screen -->
     <div id="splash-screen">
         <div class="splash-content">
-            <i class="fa-solid fa-satellite-dish pulse" style="font-size: 4rem; color: #6366f1;"></i>
+            <img src="assets/logo.png" alt="FieldHub" class="pulse" style="width: 120px; height: 120px;">
             <h1 style="font-size: 2rem; margin-top: 20px; color: white;">FieldHub</h1>
         </div>
     </div>
@@ -56,7 +56,7 @@
             <div class="hero-panel">
                 <div class="hero-content">
                     <div class="hero-brand">
-                        <i class="fa-solid fa-satellite-dish pulse-slow"></i>
+                        <img src="assets/logo.png" alt="FieldHub" style="width: 48px; height: 48px;">
                         <h1>FieldHub</h1>
                     </div>
                     <h2>Command Your Field Operations.</h2>
@@ -83,7 +83,7 @@
             <div class="login-panel">
                 <div class="login-container">
                     <div class="mobile-brand">
-                        <i class="fa-solid fa-satellite-dish"></i>
+                        <img src="assets/logo.png" alt="FieldHub" style="width: 48px; height: 48px;">
                         <h2>FieldHub</h2>
                     </div>
 
@@ -125,7 +125,7 @@
         <section id="admin-view" class="view hidden">
             <nav class="sidebar glass-panel">
                 <div class="nav-brand">
-                    <i class="fa-solid fa-satellite-dish"></i>
+                    <img src="assets/logo.png" alt="FieldHub" style="width: 48px; height: 48px;">
                     <span>FieldHub</span>
                 </div>
                 <ul class="nav-links">
@@ -246,6 +246,22 @@
                                     <li class="skeleton-item"></li>
                                     <li class="skeleton-item"></li>
                                 </ul>
+                            </div>
+
+                            <!-- AI Daily Briefing -->
+                            <div class="bento-tile ai-briefing-tile span-4">
+                                <div class="tile-header">
+                                    <h4><i class="fa-solid fa-robot"></i> AI Daily Briefing</h4>
+                                    <button class="chip-btn" id="generate-briefing-btn"
+                                        onclick="window.generateDailyBriefing()">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+                                    </button>
+                                </div>
+                                <div id="ai-briefing-container"
+                                    style="padding: 16px; font-size: 0.95rem; line-height: 1.6; color: var(--text-secondary); min-height: 80px;">
+                                    <p style="color: var(--text-muted); font-style: italic;">Click "Generate" to get an
+                                        AI-powered summary of today's operations (powered by Llama 3.3).</p>
+                                </div>
                             </div>
 
                             <!-- Weekly Engagement Chart (Larger) -->
@@ -526,7 +542,7 @@
         <section id="field-view" class="view hidden">
             <header class="mobile-header glass-panel">
                 <div class="logo-small">
-                    <i class="fa-solid fa-satellite-dish"></i>
+                    <img src="assets/logo.png" alt="FieldHub" style="width: 48px; height: 48px;">
                 </div>
                 <div class="user-greeting">
                     <span>Hello,</span>
@@ -718,11 +734,90 @@
 
         <!-- Report Modal -->
         <div id="report-modal" class="modal hidden">
-            <div class="modal-content glass-panel">
-                <h3>Submit Field Report</h3>
+            <div class="modal-content glass-panel" style="max-width: 500px;">
+                <h3><i class="fa-solid fa-file-lines"></i> Submit Field Report</h3>
+
+                <!-- Smart Templates -->
+                <div style="margin-bottom: 12px;">
+                    <label
+                        style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Quick
+                        Templates:</label>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button type="button" class="template-btn" onclick="applyTemplate('daily')">📋 Daily
+                            Update</button>
+                        <button type="button" class="template-btn" onclick="applyTemplate('issue')">⚠️ Issue
+                            Report</button>
+                        <button type="button" class="template-btn" onclick="applyTemplate('maintenance')">🔧
+                            Maintenance</button>
+                        <button type="button" class="template-btn" onclick="applyTemplate('observation')">👁️
+                            Observation</button>
+                    </div>
+                </div>
+
                 <form id="report-form">
-                    <textarea name="content" placeholder="Describe the situation..." rows="4" class="input-light"
-                        required></textarea>
+                    <!-- Report Content with Voice & AI buttons -->
+                    <div style="position: relative;">
+                        <textarea name="content" id="report-content" placeholder="Describe the situation..." rows="5"
+                            class="input-light" required style="padding-right: 80px;"></textarea>
+                        <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
+                            <button type="button" class="voice-btn" onclick="toggleVoiceInput()" title="Voice Input">
+                                <i class="fa-solid fa-microphone" id="mic-icon"></i>
+                            </button>
+                            <button type="button" class="ai-helper-btn" onclick="openAIHelper()" title="AI Help">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Voice Language Selector & Status -->
+                    <div id="voice-controls"
+                        style="display: none; margin-bottom: 10px; padding: 10px; background: rgba(99, 102, 241, 0.1); border-radius: 6px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Voice Language:</label>
+                            <select id="voice-language" class="input-light"
+                                style="padding: 4px 8px; font-size: 0.8rem; width: auto;">
+                                <option value="en-IN">English (India)</option>
+                                <option value="hi-IN">हिन्दी (Hindi)</option>
+                                <option value="bn-IN">বাংলা (Bengali)</option>
+                                <option value="mr-IN">मराठी (Marathi)</option>
+                                <option value="te-IN">తెలుగు (Telugu)</option>
+                                <option value="ta-IN">தமிழ் (Tamil)</option>
+                                <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+                                <option value="ur-IN">اردو (Urdu)</option>
+                                <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+                                <option value="or-IN">ଓଡ଼ିଆ (Odia)</option>
+                                <option value="ml-IN">മലയാളം (Malayalam)</option>
+                                <option value="pa-IN">ਪੰਜਾਬੀ (Punjabi)</option>
+                                <option value="as-IN">অসমীয়া (Assamese)</option>
+                                <option value="ne-NP">नेपाली (Nepali)</option>
+                                <option value="en-US">English (US)</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--primary);">
+                            <i class="fa-solid fa-circle-dot" style="animation: pulse 1s infinite;"></i>
+                            <span id="voice-status-text">Listening...</span>
+                        </div>
+                    </div>
+
+                    <!-- One-Tap Tags -->
+                    <div style="margin-bottom: 12px;">
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Quick
+                            Tags:</label>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" class="tag-btn tag-success" onclick="addTag('✅ Completed')">✅
+                                Completed</button>
+                            <button type="button" class="tag-btn tag-warning" onclick="addTag('⚠️ Needs Material')">⚠️
+                                Needs Material</button>
+                            <button type="button" class="tag-btn tag-danger" onclick="addTag('🚨 Emergency')">🚨
+                                Emergency</button>
+                            <button type="button" class="tag-btn tag-info" onclick="addTag('🔄 Follow-up Required')">🔄
+                                Follow-up</button>
+                        </div>
+                    </div>
+
+                    <!-- Photo Upload -->
                     <div class="upload-area" id="upload-area-display" style="margin-bottom: 12px;">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                         <p>Click to upload photo</p>
@@ -733,11 +828,46 @@
                         <button type="button" class="btn-text" onclick="removePhoto()" style="margin-top: 8px;">Remove
                             Photo</button>
                     </div>
+
                     <div class="modal-actions">
                         <button type="button" class="btn-text" onclick="closeModal('report-modal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Submit Report</button>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit
+                            Report</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- AI Report Helper Modal -->
+        <div id="ai-helper-modal" class="modal hidden">
+            <div class="modal-content glass-panel" style="max-width: 420px;">
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> AI Report Helper</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Answer a few questions and
+                    I'll write your report!</p>
+
+                <div id="ai-helper-chat" style="max-height: 300px; overflow-y: auto; margin-bottom: 12px;">
+                    <!-- Chat messages will appear here -->
+                </div>
+
+                <div id="ai-helper-input-area">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="ai-helper-input" class="input-light" placeholder="Type your answer..."
+                            style="flex: 1;">
+                        <button type="button" class="btn-primary" onclick="sendAIHelperAnswer()"
+                            style="padding: 10px 16px;">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ai-helper-generating" style="display: none; text-align: center; padding: 20px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                    <p style="margin-top: 10px; color: var(--text-muted);">Generating your report...</p>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 12px;">
+                    <button type="button" class="btn-text" onclick="closeModal('ai-helper-modal')">Cancel</button>
+                </div>
             </div>
         </div>
 
@@ -795,6 +925,8 @@
                     <input type="hidden" name="workerId" value="">
                     <input type="text" name="name" placeholder="Full Name" required class="input-light">
                     <input type="email" name="email" placeholder="Email Address" required class="input-light">
+                    <input type="tel" name="phone" placeholder="Phone (10 digits)" required class="input-light"
+                        pattern="\d{10}">
 
                     <select name="role" class="input-light mobile-compatible" required style="margin-bottom: 15px;">
                         <option value="field">Field Staff</option>
@@ -825,6 +957,88 @@
                 </div>
                 <div id="dynamic-form-container">
                     <!-- Dynamic Form HTML -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Translation Modal -->
+        <div id="translate-modal" class="modal hidden">
+            <div class="modal-content glass-panel" style="max-width: 360px;">
+                <h3><i class="fa-solid fa-language"></i> Translate Report</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px;">Select target language:
+                </p>
+                <select id="translate-lang-select" class="input-light" style="margin-bottom: 16px;">
+                    <option value="English">English</option>
+                    <option value="Hindi">हिन्दी (Hindi)</option>
+                    <option value="Bengali">বাংলা (Bengali)</option>
+                    <option value="Marathi">मराठी (Marathi)</option>
+                    <option value="Telugu">తెలుగు (Telugu)</option>
+                    <option value="Tamil">தமிழ் (Tamil)</option>
+                    <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                    <option value="Urdu">اردو (Urdu)</option>
+                    <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                    <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+                    <option value="Malayalam">മലയാളം (Malayalam)</option>
+                    <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="Assamese">অসমীয়া (Assamese)</option>
+                    <option value="Maithili">मैथिली (Maithili)</option>
+                    <option value="Santali">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                    <option value="Bodo">बड़ो (Bodo)</option>
+                    <option value="Dogri">डोगरी (Dogri)</option>
+                    <option value="Kashmiri">کٲشُر (Kashmiri)</option>
+                    <option value="Konkani">कोंकणी (Konkani)</option>
+                    <option value="Manipuri">মৈতৈলোন্ (Manipuri)</option>
+                    <option value="Nepali">नेपाली (Nepali)</option>
+                    <option value="Sanskrit">संस्कृतम् (Sanskrit)</option>
+                    <option value="Sindhi">سنڌي (Sindhi)</option>
+                </select>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('translate-modal')">Cancel</button>
+                    <button type="button" class="btn-primary"
+                        onclick="performTranslation(document.getElementById('translate-lang-select').value)">
+                        <i class="fa-solid fa-language"></i> Translate
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Translation Modal -->
+        <div id="translate-task-modal" class="modal hidden">
+            <div class="modal-content glass-panel" style="max-width: 360px;">
+                <h3><i class="fa-solid fa-language"></i> Translate Task</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 12px;">Select target language:
+                </p>
+                <select id="translate-task-lang-select" class="input-light" style="margin-bottom: 16px;">
+                    <option value="English">English</option>
+                    <option value="Hindi">हिन्दी (Hindi)</option>
+                    <option value="Bengali">বাংলা (Bengali)</option>
+                    <option value="Marathi">मराठी (Marathi)</option>
+                    <option value="Telugu">తెలుగు (Telugu)</option>
+                    <option value="Tamil">தமிழ் (Tamil)</option>
+                    <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                    <option value="Urdu">اردو (Urdu)</option>
+                    <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                    <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+                    <option value="Malayalam">മലയാളം (Malayalam)</option>
+                    <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="Assamese">অসমীয়া (Assamese)</option>
+                    <option value="Maithili">मैथिली (Maithili)</option>
+                    <option value="Santali">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                    <option value="Bodo">बड़ो (Bodo)</option>
+                    <option value="Dogri">डोगरी (Dogri)</option>
+                    <option value="Kashmiri">کٲشُر (Kashmiri)</option>
+                    <option value="Konkani">कोंकणी (Konkani)</option>
+                    <option value="Manipuri">মৈতৈলোন্ (Manipuri)</option>
+                    <option value="Nepali">नेपाली (Nepali)</option>
+                    <option value="Sanskrit">संस्कृतम् (Sanskrit)</option>
+                    <option value="Sindhi">سنڌي (Sindhi)</option>
+                </select>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text" onclick="closeModal('translate-task-modal')">Cancel</button>
+                    <button type="button" class="btn-primary"
+                        onclick="performTaskTranslation(document.getElementById('translate-task-lang-select').value)">
+                        <i class="fa-solid fa-language"></i> Translate
+                    </button>
                 </div>
             </div>
         </div>
@@ -929,6 +1143,7 @@
 
     <script src="js/store_v2.js"></script>
     <script src="js/features/export_utils.js"></script>
+    <script src="js/services/ai_service.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script type="module" src="js/app_v2.js?v=final"></script>
 

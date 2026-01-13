@@ -3303,3 +3303,387 @@ body:has(#field-view.active) #theme-toggle {
 .fc-daygrid-day:hover {
     background: rgba(255, 255, 255, 0.02);
 }
+
+/* ========================================
+   AI FEATURES STYLING
+   ======================================== */
+
+.ai-briefing-tile {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.08) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-briefing-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ai-briefing-tile .tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.ai-briefing-tile .tile-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+}
+
+.ai-briefing-tile .tile-header h4 i {
+    color: var(--accent);
+}
+
+/* Chip Button for AI actions */
+.chip-btn {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chip-btn:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.chip-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.chip-btn i {
+    font-size: 0.75rem;
+}
+
+/* AI Spinner Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ========================================
+   LOGO ANIMATIONS & STYLES
+   ======================================== */
+
+/* Base Logo Styles */
+.nav-brand img,
+.logo-small img,
+.hero-brand img,
+.mobile-brand img,
+.logo img,
+.footer-brand img {
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.3));
+}
+
+/* Hover Effect - Lift and Glow */
+.nav-brand img:hover,
+.logo-small img:hover,
+.hero-brand img:hover,
+.mobile-brand img:hover,
+.logo img:hover,
+.footer-brand img:hover {
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 4px 16px rgba(99, 102, 241, 0.5));
+}
+
+/* Pulse Animation for Splash Screen */
+@keyframes logoPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 40px rgba(99, 102, 241, 0.7));
+    }
+}
+
+/* Slow Pulse for Headers */
+@keyframes logoGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 2px 16px rgba(99, 102, 241, 0.5));
+    }
+}
+
+/* Apply pulse animation */
+.pulse {
+    animation: logoPulse 2s ease-in-out infinite;
+}
+
+.pulse-slow {
+    animation: logoGlow 3s ease-in-out infinite;
+}
+
+/* Splash Screen Logo - Larger with stronger glow */
+#splash-screen img {
+    border-radius: 20px;
+    animation: logoPulse 1.5s ease-in-out infinite;
+}
+
+/* Admin Sidebar Logo */
+.sidebar .nav-brand img {
+    animation: logoGlow 4s ease-in-out infinite;
+}
+
+/* Field View Header Logo */
+.mobile-header .logo-small img {
+    animation: logoGlow 4s ease-in-out infinite;
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .nav-brand img,
+[data-theme="dark"] .logo-small img,
+[data-theme="dark"] .hero-brand img,
+[data-theme="dark"] .mobile-brand img,
+[data-theme="dark"] .logo img {
+    filter: drop-shadow(0 2px 12px rgba(96, 165, 250, 0.4));
+}
+
+[data-theme="dark"] .nav-brand img:hover,
+[data-theme="dark"] .logo-small img:hover,
+[data-theme="dark"] .hero-brand img:hover,
+[data-theme="dark"] .mobile-brand img:hover,
+[data-theme="dark"] .logo img:hover {
+    filter: drop-shadow(0 4px 24px rgba(96, 165, 250, 0.6));
+}
+
+[data-theme="dark"] #splash-screen img {
+    filter: drop-shadow(0 0 30px rgba(96, 165, 250, 0.5));
+}
+
+/* ========================================
+   CHIP BUTTONS (AI Features)
+   ======================================== */
+
+.chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    border: 1px solid var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.chip-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.chip-btn:active {
+    transform: translateY(0);
+}
+
+.chip-btn i {
+    font-size: 0.7rem;
+}
+
+/* Dark theme adjustment */
+[data-theme="dark"] .chip-btn {
+    background: rgba(96, 165, 250, 0.15);
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+}
+
+[data-theme="dark"] .chip-btn:hover {
+    background: var(--primary-light);
+    color: var(--bg-dark);
+}
+
+/* ========================================
+   REPORT WRITING FEATURE STYLES
+   ======================================== */
+
+/* Template Buttons */
+.template-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.template-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* Tag Buttons */
+.tag-btn {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    border-radius: 16px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.tag-btn:hover {
+    transform: scale(1.05);
+}
+
+.tag-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.tag-success:hover {
+    background: #10b981;
+    color: white;
+}
+
+.tag-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.tag-warning:hover {
+    background: #f59e0b;
+    color: white;
+}
+
+.tag-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.tag-danger:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.tag-info {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.tag-info:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Voice & AI Helper Buttons */
+.voice-btn,
+.ai-helper-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.voice-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--text-secondary);
+}
+
+.voice-btn:hover,
+.voice-btn.recording {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.voice-btn.recording {
+    animation: pulse-recording 1s infinite;
+}
+
+@keyframes pulse-recording {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+}
+
+.ai-helper-btn {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.ai-helper-btn:hover {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .template-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .tag-btn {
+    background: rgba(255, 255, 255, 0.05);
+}

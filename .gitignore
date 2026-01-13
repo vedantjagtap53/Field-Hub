@@ -70,3 +70,23 @@ node_modules/
 
 # Presentation Files
 presentation/
+
+# ========================================
+# SENSITIVE FILES - DO NOT COMMIT
+# ========================================
+
+# AI Service contains API keys
+js/services/ai_service.js
+
+# Firebase config contains project credentials
+js/firebase-config.js
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Secrets
+*.pem
+*.key
+secrets/
