@@ -81,7 +81,11 @@ Unlike simple record-keeping tools, Field Hub focuses on **accountability and im
 
 <div align="center">
   <h3>Admin Panel</h3>
-  <img src="screenshots/admin-dashboard.png" alt="Admin Dashboard" width="800"/>
+  <img src="screenshots/admin-dashboard1.png" alt="Admin Dashboard" width="800"/>
+
+   <img src="screenshots/admin-dashboard2.png" alt="Admin Dashboard 2" width="800"/>
+
+  <img src="screenshots/admin-dashboard3.png" alt="Admin Dashboard 3" width="800"/>
 </div>
 
 <div align="center">
