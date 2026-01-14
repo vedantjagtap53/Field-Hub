@@ -60,7 +60,7 @@ export const FieldRenderers = {
                 <div class="task-header">
                     <span class="badge">${task.priority}</span>
                     <div style="display:flex; gap:8px; align-items:center;">
-                        <button class="chip-btn" onclick="window.translateTask(${index}, '${taskText.replace(/'/g, "\\'")}', 'field')"><i class="fa-solid fa-language"></i></button>
+                        <button class="chip-btn" onclick="window.translateTask(${index}, 'field')"><i class="fa-solid fa-language"></i></button>
                         <span style="font-size:0.85rem; color:var(--text-muted);"><i class="fa-solid fa-clock"></i> ${task.time}</span>
                     </div>
                 </div>

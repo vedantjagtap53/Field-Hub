@@ -1,8 +1,10 @@
-const CACHE_NAME = 'fieldhub-v2';
+const CACHE_NAME = 'fieldhub-v3';
 const ASSETS = [
     './',
     './index.html',
     './app.html',
+    './manifest.json',
+    './assets/logo.png',
     './styles/main.css',
     './js/app_v2.js',
     './js/store_v2.js',

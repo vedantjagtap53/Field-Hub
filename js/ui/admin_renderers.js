@@ -238,7 +238,7 @@ export const AdminRenderers = {
                         </p>
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
-                        <button class="chip-btn" onclick="window.translateTask(${index}, '${taskText.replace(/'/g, "\\'")}')"><i class="fa-solid fa-language"></i></button>
+                        <button class="chip-btn" onclick="window.translateTask(${index})"><i class="fa-solid fa-language"></i></button>
                         <span style="font-size:0.7rem; padding:4px 10px; border-radius:4px; background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary); text-transform:uppercase; font-weight:600;">${t.priority}</span>
                         <span style="font-size:0.7rem; padding:4px 10px; border-radius:4px; background:${t.status === 'completed' ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.05)'}; color:${t.status === 'completed' ? 'var(--primary)' : 'var(--text-muted)'}; border:1px solid ${t.status === 'completed' ? 'var(--primary)' : 'var(--border)'}; text-transform:uppercase; font-weight:600;">${t.status}</span>
                     </div>
@@ -339,7 +339,7 @@ export const AdminRenderers = {
 
         list.innerHTML = reports.length ? reports.map((r, index) => {
             const user = window.store.getUsers().find(u => u.id === r.userId);
-            const date = new Date(r.timestamp);
+            const date = new Date(r.createdAt || r.timestamp);
             const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -352,7 +352,7 @@ export const AdminRenderers = {
                     </div>
                     <div style="display:flex; gap:8px; align-items:start;">
                         ${r.hasPhoto ? '<span style="font-size:0.75rem; padding:3px 8px; border-radius:4px; background:rgba(59,130,246,0.1); color:var(--primary); border:1px solid var(--primary); height:fit-content;"><i class="fa-solid fa-camera"></i> Photo</span>' : ''}
-                        <button class="chip-btn" onclick="window.translateReport(${index}, '${r.content.replace(/'/g, "\\'")}')"><i class="fa-solid fa-language"></i> Translate</button>
+                        <button class="chip-btn" onclick="window.translateReport(${index})"><i class="fa-solid fa-language"></i> Translate</button>
                     </div>
                 </div>
                 <div id="report-content-${index}" style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5; padding:12px; background:var(--bg-darker); border-radius:6px; border-left:3px solid var(--primary);">${r.content}</div>

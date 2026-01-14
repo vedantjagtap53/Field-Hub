@@ -30,11 +30,12 @@ export const ChartUtils = {
                 });
                 activeUsersData.push(new Set(dailyLogs.map(l => l.userId)).size);
 
-                // Completed Tasks (Mocking completion date as created date for now roughly, or real if available)
-                // Since we don't track 'completedAt' strictly in this mock store, we'll estimate based on 'createdAt' or just mock data for demo visual
-                // Ideally: tasks.filter(t => t.status === 'completed' && new Date(t.completedAt).toDateString() === d.toDateString())
-                // For Demo: Randomize slightly or use createdAt
-                const dailyTasks = tasks.filter(t => new Date(t.createdAt).toDateString() === d.toDateString()).length;
+                // Completed Tasks
+                const dailyTasks = tasks.filter(t => {
+                    if (t.status !== 'completed') return false;
+                    const dateToCheck = t.completedAt ? new Date(t.completedAt) : new Date(t.createdAt);
+                    return dateToCheck.toDateString() === d.toDateString();
+                }).length;
                 completedTasksData.push(dailyTasks);
             }
 
@@ -44,7 +45,7 @@ export const ChartUtils = {
                     labels: labels,
                     datasets: [
                         { label: 'Active Volunteers', data: activeUsersData, backgroundColor: '#3b82f6', borderRadius: 4 },
-                        { label: 'Tasks Created', data: completedTasksData, backgroundColor: '#10b981', borderRadius: 4 }
+                        { label: 'Tasks Completed', data: completedTasksData, backgroundColor: '#10b981', borderRadius: 4 }
                     ]
                 },
                 options: {

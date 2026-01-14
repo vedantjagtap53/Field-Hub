@@ -527,10 +527,13 @@ window.editProject = (projectId) => {
 let currentTranslationIndex = null;
 let currentTranslationContent = '';
 
-window.translateReport = (index, content) => {
+window.translateReport = (index) => {
     currentTranslationIndex = index;
-    currentTranslationContent = content;
-    UI.openModal('translate-modal');
+    const reports = window.store.getReports();
+    if (reports[index]) {
+        currentTranslationContent = reports[index].content;
+        UI.openModal('translate-modal');
+    }
 };
 
 window.performTranslation = async (targetLang) => {
@@ -581,11 +584,24 @@ let currentTaskIndex = null;
 let currentTaskContent = '';
 let currentTaskType = 'admin'; // 'admin' or 'field'
 
-window.translateTask = (index, content, type = 'admin') => {
+window.translateTask = (index, type = 'admin') => {
     currentTaskIndex = index;
-    currentTaskContent = content;
     currentTaskType = type;
-    UI.openModal('translate-task-modal');
+
+    let tasks = [];
+    if (type === 'field') {
+        const user = window.store.getCurrentUser();
+        tasks = user ? window.store.getTasks(user.id) : [];
+    } else {
+        tasks = window.store.getTasks();
+    }
+
+    if (tasks[index]) {
+        // Construct task description for translation
+        const t = tasks[index];
+        currentTaskContent = `${t.title} - ${t.description || ''} at ${t.location}`;
+        UI.openModal('translate-task-modal');
+    }
 };
 
 window.performTaskTranslation = async (targetLang) => {
@@ -1479,44 +1495,50 @@ function setupForms() {
                 clockBtn.disabled = true;
                 Loading.show();
                 if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
-                        const { latitude, longitude } = pos.coords;
+                    try {
+                        const getPos = (opts) => new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, opts));
 
-                        // PRIORITY 1: Check if worker has an assigned site
-                        let site = null;
-                        if (user.assignedSite) {
-                            const allSites = window.store.getAllSites();
-                            const assignedSite = allSites.find(s => s.id === user.assignedSite);
-                            if (assignedSite && assignedSite.coords) {
-                                // Calculate distance to assigned site
-                                const R = 6371e3; // metres
-                                let siteLat, siteLng;
-                                if (Array.isArray(assignedSite.coords)) {
-                                    siteLat = assignedSite.coords[0];
-                                    siteLng = assignedSite.coords[1];
-                                } else {
-                                    siteLat = assignedSite.coords.lat;
-                                    siteLng = assignedSite.coords.lng;
-                                }
-                                const φ1 = latitude * Math.PI / 180;
-                                const φ2 = siteLat * Math.PI / 180;
-                                const Δφ = (siteLat - latitude) * Math.PI / 180;
-                                const Δλ = (siteLng - longitude) * Math.PI / 180;
-                                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                                    Math.cos(φ1) * Math.cos(φ2) *
-                                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-                                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                                const distance = R * c;
-                                site = { ...assignedSite, distance };
-                            }
+                        let pos;
+                        try {
+                            // Try High Accuracy first (10s timeout)
+                            pos = await getPos({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+                        } catch (e) {
+                            console.warn('High accuracy geo failed, falling back to low accuracy', e);
+                            // Fallback to low accuracy (allow 1 min old cache, 10s timeout)
+                            pos = await getPos({ enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
                         }
 
-                        // PRIORITY 2: Fall back to nearest site if no assigned site
-                        if (!site) {
+                        const { latitude, longitude } = pos.coords;
+
+                        // Helper to calc distance
+                        const calcDist = (lat1, lon1, lat2, lon2) => {
+                            const R = 6371e3;
+                            const φ1 = lat1 * Math.PI / 180;
+                            const φ2 = lat2 * Math.PI / 180;
+                            const Δφ = (lat2 - lat1) * Math.PI / 180;
+                            const Δλ = (lon2 - lon1) * Math.PI / 180;
+                            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                        };
+
+                        let site = null;
+
+                        // STRICT LOGIC: If assigned site, ONLY check that one.
+                        if (user.assignedSite) {
+                            const allSites = window.store.getAllSites();
+                            const assigned = allSites.find(s => s.id === user.assignedSite);
+                            if (assigned && assigned.coords) {
+                                let sLat = Array.isArray(assigned.coords) ? assigned.coords[0] : assigned.coords.lat;
+                                let sLng = Array.isArray(assigned.coords) ? assigned.coords[1] : assigned.coords.lng;
+                                const dist = calcDist(latitude, longitude, sLat, sLng);
+                                site = { ...assigned, distance: dist };
+                            }
+                        } else {
+                            // If no assigned site, find nearest (Standard behavior)
                             site = window.store.findNearestSite([latitude, longitude]);
                         }
 
-                        // 1. Must have at least one site in the system
+                        // 1. Must have a site
                         if (!site) {
                             Loading.hide();
                             Toast.error('No workplace configured in system.');
@@ -1526,8 +1548,6 @@ function setupForms() {
                         }
 
                         // 2. STRICT CHECK: Must be within radius
-                        // site.distance is in meters (calculated above or in store_v2.js)
-                        // site.radius is in meters (default 200)
                         const allowedRadius = site.radius || 200;
 
                         if (site.distance > allowedRadius) {
@@ -1538,22 +1558,39 @@ function setupForms() {
                             return;
                         }
 
-                        await window.store.logAttendance(user.id, 'clock-in', site.id, `${latitude},${longitude}`, { latitude, longitude });
+                        // Strictly use Auth UID to prevent permission mismatch
+                        const authUser = firebase.auth().currentUser;
+                        const validUid = authUser ? authUser.uid : user.id;
+
+                        console.log(`Clocking in for: ${validUid} (Auth: ${authUser ? 'Yes' : 'No'})`);
+                        await window.store.logAttendance(validUid, 'clock-in', site.id, `${latitude},${longitude}`, { latitude, longitude });
 
                         FieldRenderers.updateClockUI('in', site.name);
                         Loading.hide(); clockBtn.disabled = false; Toast.success('Clocked In');
-                    }, (err) => {
-                        Loading.hide();
-                        let msg = 'Location denied';
-                        if (err.code === 1) msg = 'Location access denied. Please enable permissions.';
-                        else if (err.code === 2) msg = 'Location unavailable.';
-                        else if (err.code === 3) msg = 'Location timed out.';
 
-                        console.error('Geo Error:', err);
+                    } catch (err) {
+                        Loading.hide();
+                        console.error('Clock-in Logic Error:', err);
+
+                        let msg = 'An error occurred during clock-in.';
+
+                        // Geolocation Errors (PositionError)
+                        if (err.code === 1) msg = 'Location access denied. Please enable GPS permissions.';
+                        else if (err.code === 2) msg = 'Location unavailable (GPS signal weak).';
+                        else if (err.code === 3) msg = 'Location request timed out. Please try again.';
+
+                        // Firebase/Database Errors
+                        else if (err.code === 'permission-denied' || (err.message && err.message.includes('permission'))) {
+                            msg = 'Database Permission Error. Please ensure you are logged in correctly.';
+                        }
+                        else if (err.message) {
+                            msg = err.message;
+                        }
+
                         Toast.error(msg);
                         clockBtn.disabled = false;
                         clockBtn.innerText = 'Clock In';
-                    });
+                    }
                 } else {
                     Loading.hide(); Toast.error('Geolocation not supported by this browser.');
                 }

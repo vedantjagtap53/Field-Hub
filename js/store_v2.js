@@ -349,6 +349,14 @@ const store = {
         return await window.db.collection('projects').doc(id).delete();
     },
 
+    // --- USERS ---
+    getUsers: () => state.users,
+    getCurrentUser: () => {
+        if (!state.currentUser) return null;
+        const fresh = state.users.find(u => u.id === state.currentUser.id);
+        return fresh || state.currentUser;
+    },
+
     // --- REGISTRATIONS ---
     getRegistrations: () => state.registrations,
 
@@ -417,7 +425,10 @@ const store = {
     },
 
     completeTask: async (id) => {
-        return await window.db.collection('tasks').doc(id).update({ status: 'completed' });
+        return await window.db.collection('tasks').doc(id).update({
+            status: 'completed',
+            completedAt: new Date().toISOString()
+        });
     },
 
     // --- LEAVE REQUESTS ---
