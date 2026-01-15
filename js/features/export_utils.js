@@ -63,7 +63,7 @@ const ExportUtils = {
     },
 
     exportCSV: (data, columns, filename) => {
-        const csv = ExportUtils.toCSV(data, columns);
+        const csv = '\uFEFF' + ExportUtils.toCSV(data, columns);
         ExportUtils.downloadFile(csv, `${filename}.csv`, 'text/csv');
     },
 

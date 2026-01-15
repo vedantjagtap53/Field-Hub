@@ -1,7 +1,4 @@
 
-// ========================================
-// GeoOps v2.0 - Module Controller
-// ========================================
 
 
 import { Toast, Loading, UI, FileUtils } from './utils/ui_helpers.js';
@@ -390,7 +387,7 @@ window.exportReports = (format) => {
             { header: 'Date', key: 'createdAt', transform: (v) => new Date(v).toLocaleDateString() },
             { header: 'Time', key: 'createdAt', transform: (v) => new Date(v).toLocaleTimeString() },
             { header: 'Author', key: 'author' },
-            { header: 'Content', key: 'content' },
+            { header: 'Content', key: 'content', transform: (v) => v ? v.replace(/[\r\n]+/g, ' ') : '' },
             { header: 'Has Photo', key: 'hasPhoto', transform: (v) => v ? 'Yes' : 'No' }
         ];
         window.ExportUtils.exportCSV(data, columns, `Field_Reports_${new Date().toISOString().split('T')[0]}`);
@@ -1558,12 +1555,9 @@ function setupForms() {
                             return;
                         }
 
-                        // Strictly use Auth UID to prevent permission mismatch
-                        const authUser = firebase.auth().currentUser;
-                        const validUid = authUser ? authUser.uid : user.id;
-
-                        console.log(`Clocking in for: ${validUid} (Auth: ${authUser ? 'Yes' : 'No'})`);
-                        await window.store.logAttendance(validUid, 'clock-in', site.id, `${latitude},${longitude}`, { latitude, longitude });
+                        // Use confirmed User ID (Doc ID) for consistency with UI
+                        console.log(`Clocking in for: ${user.id}`);
+                        await window.store.logAttendance(user.id, 'clock-in', site.id, `${latitude},${longitude}`, { latitude, longitude });
 
                         FieldRenderers.updateClockUI('in', site.name);
                         Loading.hide(); clockBtn.disabled = false; Toast.success('Clocked In');

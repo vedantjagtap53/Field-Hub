@@ -322,12 +322,7 @@ const store = {
         await clearCol('attendance');
         await clearCol('attendanceLogs');
         await clearCol('reports');
-        // We DO NOT clear users (except maybe non-admins, but risky), projects, or sites automatically.
-        // User asked: "cleare previous data of staff, reports, attendance"
-        // Clearing 'staff' might mean deleting all field users? 
-        // I'll stick to operational data (reports, attendance) + maybe 'inactive' staff?
-        // User said "previous data of staff", implies staff records themselves.
-        // I'll provide a targeted clear function.
+
     },
 
     // --- PROJECTS ---
