@@ -149,5 +149,5 @@ English, Hindi, Bengali, Marathi, Telugu, Tamil, Gujarati, Urdu, Kannada, Odia, 
 ---
 
 <div align="center">
-  <p>Made with ❤️ for Social Good</p>
+  <p>Made with ❤️ for Social Good of People.</p>
 </div>
